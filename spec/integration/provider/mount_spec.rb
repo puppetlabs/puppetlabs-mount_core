@@ -2,7 +2,7 @@ require 'spec_helper'
 
 require 'puppet/file_bucket/dipper'
 
-describe "mount provider (integration)", :unless => Puppet.features.microsoft_windows? do
+describe 'mount provider (integration)', unless: Puppet.features.microsoft_windows? do
   include PuppetSpec::Files
 
   family = Facter.value(:osfamily)
@@ -17,9 +17,9 @@ describe "mount provider (integration)", :unless => Puppet.features.microsoft_wi
 
   before :each do
     @fake_fstab = tmpfile('fstab')
-    @current_options = "local"
-    @current_device = "/dev/disk1s1"
-    Puppet[:digest_algorithm] = 'md5' 
+    @current_options = 'local'
+    @current_device = '/dev/disk1s1'
+    Puppet[:digest_algorithm] = 'md5'
     Puppet::Type.type(:mount).defaultprovider.stubs(:default_target).returns(@fake_fstab)
     Facter.stubs(:value).with(:hostname).returns('some_host')
     Facter.stubs(:value).with(:domain).returns('some_domain')
@@ -27,7 +27,7 @@ describe "mount provider (integration)", :unless => Puppet.features.microsoft_wi
     Facter.stubs(:value).with(:operatingsystem).returns('RedHat')
     Facter.stubs(:value).with(:osfamily).returns('RedHat')
     Facter.stubs(:value).with(:fips_enabled).returns(false)
-    Puppet::Util::ExecutionStub.set do |command, options|
+    Puppet::Util::ExecutionStub.set do |command, _options|
       case command[0]
       when %r{/s?bin/mount}
         if command.length == 1
@@ -49,7 +49,7 @@ describe "mount provider (integration)", :unless => Puppet.features.microsoft_wi
         @mounted = false
         ''
       else
-        fail "Unexpected command #{command.inspect} executed"
+        raise "Unexpected command #{command.inspect} executed"
       end
     end
   end
@@ -60,21 +60,21 @@ describe "mount provider (integration)", :unless => Puppet.features.microsoft_wi
 
   def check_fstab(expected_to_be_present)
     # Verify that the fake fstab has the expected data in it
-    fstab_contents = File.read(@fake_fstab).split("\n").reject { |x| x =~ /^#|^$/ }
+    fstab_contents = File.read(@fake_fstab).split("\n").reject { |x| x =~ %r{^#|^$} }
     if expected_to_be_present
-      expect(fstab_contents.length()).to eq(1)
-      device, rest_of_line = fstab_contents[0].split(/\t/,2)
+      expect(fstab_contents.length).to eq(1)
+      device, rest_of_line = fstab_contents[0].split(%r{\t}, 2)
       expect(rest_of_line).to eq("/Volumes/foo_disk\tmsdos\t#{@desired_options}\t0\t0")
       device
     else
-      expect(fstab_contents.length()).to eq(0)
+      expect(fstab_contents.length).to eq(0)
       nil
     end
   end
 
   def run_in_catalog(settings)
-    resource = Puppet::Type.type(:mount).new(settings.merge(:name => "/Volumes/foo_disk",
-                                             :device => "/dev/disk1s1", :fstype => "msdos"))
+    resource = Puppet::Type.type(:mount).new(settings.merge(name: '/Volumes/foo_disk',
+                                                            device: '/dev/disk1s1', fstype: 'msdos'))
     Puppet::FileBucket::Dipper.any_instance.stubs(:backup) # Don't backup to the filebucket
     resource.expects(:err).never
     catalog = Puppet::Resource::Catalog.new
@@ -97,40 +97,40 @@ describe "mount provider (integration)", :unless => Puppet.features.microsoft_wi
 
           [:defined, :present, :mounted, :unmounted, :absent].each do |ensure_setting|
             expected_final_state = case ensure_setting
-              when :mounted
-                true
-              when :unmounted, :absent
-                false
-              when :defined, :present
-                initial_state
-              else
-                fail "Unknown ensure_setting #{ensure_setting}"
+                                   when :mounted
+                                     true
+                                   when :unmounted, :absent
+                                     false
+                                   when :defined, :present
+                                     initial_state
+                                   else
+                                     raise "Unknown ensure_setting #{ensure_setting}"
             end
             expected_fstab_data = (ensure_setting != :absent)
             describe "When setting ensure => #{ensure_setting}" do
-              ["local", "journaled", "", nil].each do |options_setting|
+              ['local', 'journaled', '', nil].each do |options_setting|
                 describe "When setting options => '#{options_setting}'" do
                   it "should leave the system in the #{expected_final_state ? 'mounted' : 'unmounted'} state, #{expected_fstab_data ? 'with' : 'without'} data in /etc/fstab" do
-                    if family == "Solaris"
-                      skip("Solaris: The mock :operatingsystem value does not get changed in lib/puppet/provider/mount/parsed.rb")
+                    if family == 'Solaris'
+                      skip('Solaris: The mock :operatingsystem value does not get changed in lib/puppet/provider/mount/parsed.rb')
                     else
                       if options_setting && options_setting.empty?
-                        expect { run_in_catalog(:ensure=>ensure_setting, :options => options_setting) }.to raise_error Puppet::ResourceError
+                        expect { run_in_catalog(ensure: ensure_setting, options: options_setting) }.to raise_error Puppet::ResourceError
                       else
                         if options_setting
                           @desired_options = options_setting
-                          run_in_catalog(:ensure=>ensure_setting, :options => options_setting)
+                          run_in_catalog(ensure: ensure_setting, options: options_setting)
                         else
-                          if initial_fstab_entry
-                            @desired_options = @current_options
-                          else
-                            @desired_options = 'defaults'
-                          end
-                          run_in_catalog(:ensure=>ensure_setting)
+                          @desired_options = if initial_fstab_entry
+                                               @current_options
+                                             else
+                                               'defaults'
+                                             end
+                          run_in_catalog(ensure: ensure_setting)
                         end
                         expect(@mounted).to eq(expected_final_state)
                         if expected_fstab_data
-                          expect(check_fstab(expected_fstab_data)).to eq("/dev/disk1s1")
+                          expect(check_fstab(expected_fstab_data)).to eq('/dev/disk1s1')
                         else
                           expect(check_fstab(expected_fstab_data)).to eq(nil)
                         end
@@ -146,18 +146,18 @@ describe "mount provider (integration)", :unless => Puppet.features.microsoft_wi
     end
   end
 
-  describe "When the wrong device is mounted" do
-    it "should remount the correct device" do
-      pending "Due to bug 6309"
+  describe 'When the wrong device is mounted' do
+    it 'remounts the correct device' do
+      pending 'Due to bug 6309'
       @mounted = true
-      @current_device = "/dev/disk2s2"
+      @current_device = '/dev/disk2s2'
       create_fake_fstab(true)
-      @desired_options = "local"
-      run_in_catalog(:ensure=>:mounted, :options=>'local')
-      expect(@current_device).to eq("/dev/disk1s1")
+      @desired_options = 'local'
+      run_in_catalog(ensure: :mounted, options: 'local')
+      expect(@current_device).to eq('/dev/disk1s1')
       expect(@mounted).to eq(true)
       expect(@current_options).to eq('local')
-      expect(check_fstab(true)).to eq("/dev/disk1s1")
+      expect(check_fstab(true)).to eq('/dev/disk1s1')
     end
   end
 end

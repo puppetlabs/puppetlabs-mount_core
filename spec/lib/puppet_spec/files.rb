@@ -7,10 +7,10 @@ require 'pathname'
 module PuppetSpec::Files
   def self.cleanup
     $global_tempfiles ||= []
-    while path = $global_tempfiles.pop do
+    while path = $global_tempfiles.pop
       begin
         Dir.unstub(:entries)
-        FileUtils.rm_rf path, :secure => true
+        FileUtils.rm_rf path, secure: true
       rescue Errno::ENOENT
         # nothing to do
       end
@@ -48,7 +48,7 @@ module PuppetSpec::Files
       text = contents[:posix]
     end
     File.open(file, 'wb') { |f| f.write(text) }
-    Puppet::FileSystem.chmod(0755, file)
+    Puppet::FileSystem.chmod(0o755, file)
     file
   end
 
@@ -62,12 +62,12 @@ module PuppetSpec::Files
 
   # Copied from ruby 2.4 source
   def make_tmpname((prefix, suffix), n)
-    prefix = (String.try_convert(prefix) or
-              raise ArgumentError, "unexpected prefix: #{prefix.inspect}")
-    suffix &&= (String.try_convert(suffix) or
-                raise ArgumentError, "unexpected suffix: #{suffix.inspect}")
-    t = Time.now.strftime("%Y%m%d")
-    path = "#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}".dup
+    prefix = (String.try_convert(prefix) ||
+              raise(ArgumentError, "unexpected prefix: #{prefix.inspect}"))
+    suffix &&= (String.try_convert(suffix) ||
+                raise(ArgumentError, "unexpected suffix: #{suffix.inspect}"))
+    t = Time.now.strftime('%Y%m%d')
+    path = "#{prefix}#{t}-#{$PROCESS_ID}-#{rand(0x100000000).to_s(36)}".dup
     path << "-#{n}" if n
     path << suffix if suffix
     path
@@ -78,13 +78,13 @@ module PuppetSpec::Files
   end
 
   def dir_contained_in(dir, contents_hash)
-    contents_hash.each do |k,v|
+    contents_hash.each do |k, v|
       if v.is_a?(Hash)
-        Dir.mkdir(tmp = File.join(dir,k))
+        Dir.mkdir(tmp = File.join(dir, k))
         dir_contained_in(tmp, v)
       else
         file = File.join(dir, k)
-        File.open(file, 'wb') {|f| f.write(v) }
+        File.open(file, 'wb') { |f| f.write(v) }
       end
     end
     dir
@@ -97,11 +97,11 @@ module PuppetSpec::Files
   end
 
   def expect_file_mode(file, mode)
-    actual_mode = "%o" % Puppet::FileSystem.stat(file).mode
+    actual_mode = '%o' % Puppet::FileSystem.stat(file).mode
     target_mode = if Puppet.features.microsoft_windows?
-      mode
-    else
-      "10" + "%04i" % mode.to_i
+                    mode
+                  else
+                    '10' + '%04i' % mode.to_i
     end
     expect(actual_mode).to eq(target_mode)
   end

@@ -1,5 +1,5 @@
-shared_examples_for "all parsedfile providers" do |provider, *files|
-  if files.empty? then
+shared_examples_for 'all parsedfile providers' do |provider, *files|
+  if files.empty?
     files = my_fixtures
   end
 
@@ -9,12 +9,12 @@ shared_examples_for "all parsedfile providers" do |provider, *files|
       provider.prefetch
 
       text = provider.to_file(provider.target_records(file))
-      text.gsub!(/^# HEADER.+\n/, '')
+      text.gsub!(%r{^# HEADER.+\n}, '')
 
       oldlines = File.readlines(file)
       newlines = text.chomp.split "\n"
       oldlines.zip(newlines).each do |old, new|
-        expect(new.gsub(/\s+/, '')).to eq(old.chomp.gsub(/\s+/, ''))
+        expect(new.gsub(%r{\s+}, '')).to eq(old.chomp.gsub(%r{\s+}, ''))
       end
     end
   end

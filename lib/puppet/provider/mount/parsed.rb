@@ -2,37 +2,37 @@ require 'puppet/provider/parsedfile'
 require 'puppet/provider/mount'
 
 fstab = nil
-case Facter.value(:osfamily)
-when "Solaris"; fstab = "/etc/vfstab"
-when "AIX"; fstab = "/etc/filesystems"
-else
-  fstab = "/etc/fstab"
-end
+fstab = case Facter.value(:osfamily)
+        when 'Solaris' then '/etc/vfstab'
+        when 'AIX' then '/etc/filesystems'
+        else
+          '/etc/fstab'
+        end
 
 Puppet::Type.type(:mount).provide(
   :parsed,
-  :parent => Puppet::Provider::ParsedFile,
-  :default_target => fstab,
-  :filetype => :flat
+  parent: Puppet::Provider::ParsedFile,
+  default_target: fstab,
+  filetype: :flat,
 ) do
   include Puppet::Provider::Mount
 
-  commands :mountcmd => "mount", :umount => "umount"
+  commands mountcmd: 'mount', umount: 'umount'
 
-  case Facter.value(:osfamily)
-  when "Solaris"
-    @fields = [:device, :blockdevice, :name, :fstype, :pass, :atboot, :options]
-  else
-    @fields = [:device, :name, :fstype, :options, :dump, :pass]
-  end
+  @fields = case Facter.value(:osfamily)
+            when 'Solaris'
+              [:device, :blockdevice, :name, :fstype, :pass, :atboot, :options]
+            else
+              [:device, :name, :fstype, :options, :dump, :pass]
+            end
 
-  if Facter.value(:osfamily) == "AIX"
+  if Facter.value(:osfamily) == 'AIX'
     # * is the comment character on AIX /etc/filesystems
-    text_line :comment, :match => /^\s*\*/
+    text_line :comment, match: %r{^\s*\*}
   else
-    text_line :comment, :match => /^\s*#/
+    text_line :comment, match: %r{^\s*#}
   end
-  text_line :blank, :match => /^\s*$/
+  text_line :blank, match: %r{^\s*$}
 
   optional_fields  = @fields - [:device, :name, :blockdevice]
   mandatory_fields = @fields - optional_fields
@@ -40,10 +40,10 @@ Puppet::Type.type(:mount).provide(
   # fstab will ignore lines that have fewer than the mandatory number of columns,
   # so we should, too.
   field_pattern = '(\s*(?>\S+))'
-  text_line :incomplete, :match => /^(?!#{field_pattern}{#{mandatory_fields.length}})/
+  text_line :incomplete, match: %r{^(?!#{field_pattern}{#{mandatory_fields.length}})}
 
   case Facter.value(:osfamily)
-  when "AIX"
+  when 'AIX'
     # The only field that is actually ordered is :name. See `man filesystems` on AIX
     @fields = [:name, :account, :boot, :check, :dev, :free, :mount, :nodename,
                :options, :quota, :size, :type, :vfs, :vol, :log]
@@ -54,17 +54,17 @@ Puppet::Type.type(:mount).provide(
       lines = text.split("\n")
       filesystem_stanza = false
       filesystem_index = 0
-      ret = Array.new
-      lines.each_with_index do |line,i|
-        if line.match(%r{^\S+:})
+      ret = []
+      lines.each_with_index do |line, i|
+        if line =~ %r{^\S+:}
           # Begin new filesystem stanza and save the index
           ret[filesystem_index] = filesystem_stanza.join("\n") if filesystem_stanza
           filesystem_stanza = Array(line)
           filesystem_index = i
           # Eat the preceding blank line
-          ret[i-1] = nil if i > 0 and ret[i-1] and ret[i-1].match(%r{^\s*$})
+          ret[i - 1] = nil if i > 0 && ret[i - 1] && ret[i - 1].match(%r{^\s*$})
           nil
-        elsif line.match(%r{^(\s*\*.*|\s*)$})
+        elsif line =~ %r{^(\s*\*.*|\s*)$}
           # Just a comment or blank line; add in place
           ret[i] = line
         else
@@ -75,75 +75,76 @@ Puppet::Type.type(:mount).provide(
       # Add the final stanza to the return
       ret[filesystem_index] = filesystem_stanza.join("\n") if filesystem_stanza
       ret = ret.compact.flatten
-      ret.reject { |line| line.match(/^\* HEADER/) }
-    end
-    def self.header
-      super.gsub(/^#/,'*')
+      ret.reject { |line| line.match(%r{^\* HEADER}) }
     end
 
-    record_line self.name,
-      :fields    => @fields,
-      :separator => /\n/,
-      :block_eval => :instance do
+    def self.header
+      super.gsub(%r{^#}, '*')
+    end
+
+    record_line name,
+                fields: @fields,
+                separator: %r{\n},
+                block_eval: :instance do
 
       def post_parse(result)
         property_map = {
-          :dev      => :device,
-          :nodename => :nodename,
-          :options  => :options,
-          :vfs      => :fstype,
+          dev: :device,
+          nodename: :nodename,
+          options: :options,
+          vfs: :fstype,
         }
         # Result is modified in-place instead of being returned; icky!
         memo = result.dup
         result.clear
         # Save the line for later, just in case it is unparsable
-        result[:line] = @fields.collect do |field|
+        result[:line] = @fields.map { |field|
           memo[field] if memo[field] != :absent
-        end.compact.join("\n")
+        }.compact.join("\n")
         result[:record_type] = memo[:record_type]
-        special_options = Array.new
-        result[:name] = memo[:name].sub(%r{:\s*$},'').strip
-        memo.each do |_,k_v|
-          if k_v and k_v.is_a?(String) and k_v.match("=")
-            attr_name, attr_value = k_v.split("=",2).map(&:strip)
-            if attr_map_name = property_map[attr_name.to_sym]
-              # These are normal "options" options (see `man filesystems`)
-              result[attr_map_name] = attr_value
-            else
-              # These /etc/filesystem attributes have no mount resource simile,
-              # so are added to the "options" property for puppet's sake
-              special_options << "#{attr_name}=#{attr_value}"
-            end
-            if result[:nodename]
-              result[:device] = "#{result[:nodename]}:#{result[:device]}"
-              result.delete(:nodename)
-            end
+        special_options = []
+        result[:name] = memo[:name].sub(%r{:\s*$}, '').strip
+        memo.each do |_, k_v|
+          next unless k_v && k_v.is_a?(String) && k_v.match('=')
+          attr_name, attr_value = k_v.split('=', 2).map(&:strip)
+          if attr_map_name = property_map[attr_name.to_sym]
+            # These are normal "options" options (see `man filesystems`)
+            result[attr_map_name] = attr_value
+          else
+            # These /etc/filesystem attributes have no mount resource simile,
+            # so are added to the "options" property for puppet's sake
+            special_options << "#{attr_name}=#{attr_value}"
+          end
+          if result[:nodename]
+            result[:device] = "#{result[:nodename]}:#{result[:device]}"
+            result.delete(:nodename)
           end
         end
-        result[:options] = [result[:options],special_options.sort].flatten.compact.join(',')
-        if ! result[:device]
+        result[:options] = [result[:options], special_options.sort].flatten.compact.join(',')
+        unless result[:device]
           result[:device] = :absent
-          #TRANSLATORS "prefetch" is a program name and should not be translated
+          # TRANSLATORS "prefetch" is a program name and should not be translated
           Puppet.err _("Prefetch: Mount[%{name}]: Field 'device' is missing") % { name: result[:name] }
         end
-        if ! result[:fstype]
+        unless result[:fstype]
           result[:fstype] = :absent
-          #TRANSLATORS "prefetch" is a program name and should not be translated
+          # TRANSLATORS "prefetch" is a program name and should not be translated
           Puppet.err _("Prefetch: Mount[%{name}]: Field 'fstype' is missing") % { name: result[:name] }
         end
       end
+
       def to_line(result)
-        output = Array.new
+        output = []
         output << "#{result[:name]}:"
-        if result[:device] and result[:device].match(%r{^/})
+        if result[:device] && result[:device].match(%r{^/})
           output << "\tdev\t\t= #{result[:device]}"
-        elsif result[:device] and result[:device] != :absent
-          if ! result[:device].match(%{^.+:/})
+        elsif result[:device] && result[:device] != :absent
+          unless result[:device].match(%(^.+:/))
             # Just skip this entry; it was malformed to begin with
             Puppet.err _("Mount[%{name}]: Field 'device' must be in the format of <absolute path> or <host>:<absolute path>") % { name: result[:name] }
             return result[:line]
           end
-          nodename, path = result[:device].split(":")
+          nodename, path = result[:device].split(':')
           output << "\tdev\t\t= #{path}"
           output << "\tnodename\t= #{nodename}"
         else
@@ -151,7 +152,7 @@ Puppet::Type.type(:mount).provide(
           Puppet.err _("Mount[%{name}]: Field 'device' is required") % { name: result[:name] }
           return result[:line]
         end
-        if result[:fstype] and result[:fstype] != :absent
+        if result[:fstype] && result[:fstype] != :absent
           output << "\tvfs\t\t= #{result[:fstype]}"
         else
           # Just skip this entry; it was malformed to begin with
@@ -161,18 +162,18 @@ Puppet::Type.type(:mount).provide(
         if result[:options]
           options = result[:options].split(',')
           special_options = options.select do |x|
-            x.match('=') and
-              ["account", "boot", "check", "free", "mount", "size", "type",
-               "vol", "log", "quota"].include? x.split('=').first
+            x.match('=') &&
+              ['account', 'boot', 'check', 'free', 'mount', 'size', 'type',
+               'vol', 'log', 'quota'].include?(x.split('=').first)
           end
-          options = options - special_options
+          options -= special_options
           special_options.sort.each do |x|
-            k, v = x.split("=")
+            k, v = x.split('=')
             output << "\t#{k}\t\t= #{v}"
           end
-          output << "\toptions\t\t= #{options.join(",")}" unless options.empty?
+          output << "\toptions\t\t= #{options.join(',')}" unless options.empty?
         end
-        if result[:line] and result[:line].split("\n").sort == output.sort
+        if result[:line] && result[:line].split("\n").sort == output.sort
           return "\n#{result[:line]}"
         else
           return "\n#{output.join("\n")}"
@@ -180,7 +181,7 @@ Puppet::Type.type(:mount).provide(
       end
     end
   else
-    record_line self.name, :fields => @fields, :separator => /\s+/, :joiner => "\t", :optional => optional_fields, :block_eval => :instance do
+    record_line name, fields: @fields, separator: %r{\s+}, joiner: "\t", optional: optional_fields, block_eval: :instance do
       def pre_gen(record)
         if !record[:options] || record[:options].empty?
           if Facter.value(:kernel) == 'Linux'
@@ -199,7 +200,7 @@ Puppet::Type.type(:mount).provide(
 
   # Every entry in fstab is :unmounted until we can prove different
   def self.prefetch_hook(target_records)
-    target_records.collect do |record|
+    target_records.map do |record|
       record[:ensure] = :unmounted if record[:record_type] == :parsed
       record
     end
@@ -211,14 +212,14 @@ Puppet::Type.type(:mount).provide(
 
     # Update fstab entries that are mounted
     providers.each do |prov|
-      if mounts.delete({:name => prov.get(:name), :mounted => :yes}) then
-        prov.set(:ensure => :mounted)
+      if mounts.delete(name: prov.get(:name), mounted: :yes)
+        prov.set(ensure: :mounted)
       end
     end
 
     # Add mounts that are not in fstab but mounted
     mounts.each do |mount|
-      providers << new(:ensure => :ghost, :name => mount[:name])
+      providers << new(ensure: :ghost, name: mount[:name])
     end
     providers
   end
@@ -233,13 +234,12 @@ Puppet::Type.type(:mount).provide(
     #   set ensure to :ghost (if the user wants to add an entry
     #   to fstab we need to know if the device was mounted before)
     mountinstances.each do |hash|
-      if mount = resources[hash[:name]]
-        case mount.provider.get(:ensure)
-        when :absent  # Mount not in fstab
-          mount.provider.set(:ensure => :ghost)
-        when :unmounted # Mount in fstab
-          mount.provider.set(:ensure => :mounted)
-        end
+      next unless mount = resources[hash[:name]]
+      case mount.provider.get(:ensure)
+      when :absent # Mount not in fstab
+        mount.provider.set(ensure: :ghost)
+      when :unmounted # Mount in fstab
+        mount.provider.set(ensure: :mounted)
       end
     end
   end
@@ -247,28 +247,28 @@ Puppet::Type.type(:mount).provide(
   def self.mountinstances
     # XXX: Will not work for mount points that have spaces in path (does fstab support this anyways?)
     regex = case Facter.value(:osfamily)
-      when "Darwin"
-        / on (?:\/private\/var\/automount)?(\S*)/
-      when "Solaris", "HP-UX"
-        /^(\S*) on /
-      when "AIX"
-        /^(?:\S*\s+\S+\s+)(\S+)/
-      else
-        / on (\S*)/
+            when 'Darwin'
+              / on (?:\/private\/var\/automount)?(\S*)/
+            when 'Solaris', 'HP-UX'
+              %r{^(\S*) on }
+            when 'AIX'
+              %r{^(?:\S*\s+\S+\s+)(\S+)}
+            else
+              %r{ on (\S*)}
     end
     instances = []
     mount_output = mountcmd.split("\n")
-    if mount_output.length >= 2 and mount_output[1] =~ /^[- \t]*$/
+    if mount_output.length >= 2 && mount_output[1] =~ %r{^[- \t]*$}
       # On some OSes (e.g. AIX) mount output begins with a header line
       # followed by a line consisting of dashes and whitespace.
       # Discard these two lines.
       mount_output[0..1] = []
     end
     mount_output.each do |line|
-      if match = regex.match(line) and name = match.captures.first
-        instances << {:name => name, :mounted => :yes} # Only :name is important here
+      if (match = regex.match(line)) && (name = match.captures.first)
+        instances << { name: name, mounted: :yes } # Only :name is important here
       else
-        raise Puppet::Error, _("Could not understand line %{line} from mount output") % { line: line }
+        raise Puppet::Error, _('Could not understand line %{line} from mount output') % { line: line }
       end
     end
     instances

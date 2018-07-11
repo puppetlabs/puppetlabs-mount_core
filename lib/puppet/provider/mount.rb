@@ -12,28 +12,28 @@ module Puppet::Provider::Mount
     # that MacOS always needs the mount options to be explicitly passed to
     # the mount command
     if Facter.value(:kernel) == 'Darwin'
-      args << "-o" << self.options if self.options and self.options != :absent
+      args << '-o' << options if options && options != :absent
     end
     args << resource[:name]
 
     mountcmd(*args)
     case get(:ensure)
-    when :absent; set(:ensure => :ghost)
-    when :unmounted; set(:ensure => :mounted)
+    when :absent then set(ensure: :ghost)
+    when :unmounted then set(ensure: :mounted)
     end
   end
 
   def remount
-    #TRANSLATORS refers to remounting a file system
-    info _("Remounting")
+    # TRANSLATORS refers to remounting a file system
+    info _('Remounting')
     os = Facter.value(:operatingsystem)
     supports_remounts = (resource[:remounts] == :true)
     if supports_remounts && os == 'AIX'
-      remount_with_option("remount")
-    elsif os.match(/^(FreeBSD|DragonFly|OpenBSD)$/)
-      remount_with_option("update")
+      remount_with_option('remount')
+    elsif os =~ %r{^(FreeBSD|DragonFly|OpenBSD)$}
+      remount_with_option('update')
     elsif supports_remounts
-      mountcmd "-o", "remount", resource[:name]
+      mountcmd '-o', 'remount', resource[:name]
     else
       unmount
       mount
@@ -46,16 +46,16 @@ module Puppet::Provider::Mount
   # @param [String] option A remount option to use or append with existing options
   #
   def remount_with_option(option)
-    if using_explicit_options?
-      options = self.options + "," + option
-    else
-      options = option
-    end
-    mountcmd "-o", options, resource[:name]
+    options = if using_explicit_options?
+                self.options + ',' + option
+              else
+                option
+              end
+    mountcmd '-o', options, resource[:name]
   end
 
   def using_explicit_options?
-    !self.options.nil? && !self.options.empty?
+    !options.nil? && !options.empty?
   end
 
   # This only works when the mount point is synced to the fstab.
@@ -64,8 +64,8 @@ module Puppet::Provider::Mount
 
     # Update property hash for future queries (e.g. refresh is called)
     case get(:ensure)
-    when :mounted; set(:ensure => :unmounted)
-    when :ghost; set(:ensure => :absent)
+    when :mounted then set(ensure: :unmounted)
+    when :ghost then set(ensure: :absent)
     end
   end
 

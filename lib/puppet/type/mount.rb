@@ -2,7 +2,7 @@ require 'puppet/property/boolean'
 
 module Puppet
   # We want the mount to refresh when it changes.
-  Type.newtype(:mount, :self_refresh => true) do
+  Type.newtype(:mount, self_refresh: true) do
     @doc = "Manages mounted filesystems, including putting mount
       information into the mount table. The actual behavior depends
       on the value of the 'ensure' parameter.
@@ -19,8 +19,8 @@ module Puppet
       **Autobefores:**  If Puppet is managing any child file paths of a mount
       point, the mount resource will autobefore them."
 
-    feature :refreshable, "The provider can remount the filesystem.",
-      :methods => [:remount]
+    feature :refreshable, 'The provider can remount the filesystem.',
+            methods: [:remount]
 
     # Use the normal parent class, because we actually want to
     # call code when sync is called.
@@ -50,22 +50,22 @@ module Puppet
       #  absent    -> unmounted  NO       create
       #  mounted   -> unmounted  NO       unmount
       newvalue(:unmounted) do
-        case self.retrieve
-        when :ghost   # (not in fstab but mounted)
+        case retrieve
+        when :ghost # (not in fstab but mounted)
           provider.create
           @resource.flush
           provider.unmount
           return :mount_unmounted
-        when nil, :absent  # (not in fstab and not mounted)
+        when nil, :absent # (not in fstab and not mounted)
           provider.create
           return :mount_created
         when :mounted # (in fstab and mounted)
           provider.unmount
           syncothers # I guess it's more likely that the mount was originally mounted with
-                     # the wrong attributes so I sync AFTER the umount
+          # the wrong attributes so I sync AFTER the umount
           return :mount_unmounted
         else
-          raise Puppet::Error, _("Unexpected change from %{current} to unmounted") % { current: current_value }
+          raise Puppet::Error, _('Unexpected change from %{current} to unmounted') % { current: current_value }
         end
       end
 
@@ -73,8 +73,8 @@ module Puppet
       #  ghost     -> absent     NO       unmount
       #  mounted   -> absent     NO       provider.destroy AND unmount
       #  unmounted -> absent     NO       provider.destroy
-      newvalue(:absent, :event => :mount_deleted) do
-        current_value = self.retrieve
+      newvalue(:absent, event: :mount_deleted) do
+        current_value = retrieve
         provider.unmount if provider.mounted?
         provider.destroy unless current_value == :ghost
       end
@@ -83,9 +83,9 @@ module Puppet
       #  ghost     -> mounted    NO       provider.create
       #  absent    -> mounted    NO       provider.create AND mount
       #  unmounted -> mounted    NO       mount
-      newvalue(:mounted, :event => :mount_mounted) do
+      newvalue(:mounted, event: :mount_mounted) do
         # Create the mount point if it does not already exist.
-        current_value = self.retrieve
+        current_value = retrieve
         currently_mounted = provider.mounted?
         provider.create if [nil, :absent, :ghost].include?(current_value)
 
@@ -98,7 +98,7 @@ module Puppet
       # insync: mounted   -> present
       #         unmounted -> present
       def insync?(is)
-        if should == :defined and [:mounted,:unmounted].include?(is)
+        if should == :defined && [:mounted, :unmounted].include?(is)
           true
         else
           super
@@ -110,16 +110,16 @@ module Puppet
         currentvalues = @resource.retrieve_resource
 
         # Determine if there are any out-of-sync properties.
-        oos = @resource.send(:properties).find_all do |prop|
+        oos = @resource.send(:properties).select { |prop|
           unless currentvalues.include?(prop)
             raise Puppet::DevError, _("Parent has property %{name} but it doesn't appear in the current values") % { name: prop.name }
           end
           if prop.name == :ensure
             false
           else
-            ! prop.safe_insync?(currentvalues[prop])
+            !prop.safe_insync?(currentvalues[prop])
           end
-        end.each { |prop| prop.sync }.length
+        }.each { |prop| prop.sync }.length
         @resource.flush if oos > 0
       end
     end
@@ -131,7 +131,7 @@ module Puppet
         path, depending on the operating system."
 
       validate do |value|
-        raise Puppet::Error, _("device must not contain whitespace: %{value}") % { value: value } if value =~ /\s/
+        raise Puppet::Error, _('device must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
       end
     end
 
@@ -143,10 +143,10 @@ module Puppet
 
       # Default to the device but with "dsk" replaced with "rdsk".
       defaultto do
-        if Facter.value(:osfamily) == "Solaris"
-          if device = resource[:device] and device =~ %r{/dsk/}
-            device.sub(%r{/dsk/}, "/rdsk/")
-          elsif fstype = resource[:fstype] and fstype == 'nfs'
+        if Facter.value(:osfamily) == 'Solaris'
+          if (device = resource[:device]) && device =~ %r{/dsk/}
+            device.sub(%r{/dsk/}, '/rdsk/')
+          elsif (fstype = resource[:fstype]) && fstype == 'nfs'
             '-'
           else
             nil
@@ -157,7 +157,7 @@ module Puppet
       end
 
       validate do |value|
-        raise Puppet::Error, _("blockdevice must not contain whitespace: %{value}") % { value: value } if value =~ /\s/
+        raise Puppet::Error, _('blockdevice must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
       end
     end
 
@@ -166,8 +166,8 @@ module Puppet
         operating system.  This is a required option."
 
       validate do |value|
-        raise Puppet::Error, _("fstype must not contain whitespace: %{value}") % { value: value } if value =~ /\s/
-        raise Puppet::Error, _("fstype must not be an empty string") if value.empty?
+        raise Puppet::Error, _('fstype must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
+        raise Puppet::Error, _('fstype must not be an empty string') if value.empty?
       end
     end
 
@@ -181,15 +181,15 @@ module Puppet
         the list."
 
       validate do |value|
-        raise Puppet::Error, _("options must not contain whitespace: %{value}") % { value: value } if value =~ /\s/
-        raise Puppet::Error, _("options must not be an empty string") if value.empty?
+        raise Puppet::Error, _('options must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
+        raise Puppet::Error, _('options must not be an empty string') if value.empty?
       end
     end
 
     newproperty(:pass) do
-      desc "The pass in which the mount is checked."
+      desc 'The pass in which the mount is checked.'
 
-      defaultto {
+      defaultto do
         if @resource.managed?
           if Facter.value(:osfamily) == 'Solaris'
             '-'
@@ -197,10 +197,10 @@ module Puppet
             0
           end
         end
-      }
+      end
     end
 
-    newproperty(:atboot, :parent => Puppet::Property::Boolean) do
+    newproperty(:atboot, parent: Puppet::Property::Boolean) do
       desc "Whether to mount the mount at boot.  Not all platforms
         support this."
 
@@ -218,36 +218,37 @@ module Puppet
       desc "Whether to dump the mount.  Not all platform support this.
         Valid values are `1` or `0` (or `2` on FreeBSD). Default is `0`."
 
-      if Facter.value(:operatingsystem) == "FreeBSD"
+      if Facter.value(:operatingsystem) == 'FreeBSD'
         newvalue(%r{(0|1|2)})
       else
         newvalue(%r{(0|1)})
       end
 
-      defaultto {
+      defaultto do
         0 if @resource.managed?
-      }
+      end
     end
 
     newproperty(:target) do
       desc "The file in which to store the mount table.  Only used by
         those providers that write to disk."
 
-      defaultto { if @resource.class.defaultprovider.ancestors.include?(Puppet::Provider::ParsedFile)
+      defaultto do
+        if @resource.class.defaultprovider.ancestors.include?(Puppet::Provider::ParsedFile)
           @resource.class.defaultprovider.default_target
         else
           nil
         end
-      }
+      end
     end
 
     newparam(:name) do
-      desc "The mount path for the mount."
+      desc 'The mount path for the mount.'
 
       isnamevar
 
       validate do |value|
-        raise Puppet::Error, _("name must not contain whitespace: %{value}") % { value: value } if value =~ /\s/
+        raise Puppet::Error, _('name must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
       end
 
       munge do |value|
@@ -263,12 +264,12 @@ module Puppet
       newvalues(:true, :false)
       defaultto do
         case Facter.value(:operatingsystem)
-        when "FreeBSD", "Darwin", "DragonFly", "OpenBSD"
+        when 'FreeBSD', 'Darwin', 'DragonFly', 'OpenBSD'
           false
-        when "AIX"
-          if Facter.value(:kernelmajversion) == "5300"
+        when 'AIX'
+          if Facter.value(:kernelmajversion) == '5300'
             false
-          elsif resource[:device] and resource[:device].match(%r{^[^/]+:/})
+          elsif resource[:device] && resource[:device].match(%r{^[^/]+:/})
             false
           else
             true
@@ -281,11 +282,11 @@ module Puppet
 
     def refresh
       # Only remount if we're supposed to be mounted.
-      provider.remount if self.should(:fstype) != "swap" and provider.mounted?
+      provider.remount if should(:fstype) != 'swap' && provider.mounted?
     end
 
     def value(name)
-      name = name.intern
+      name = name.to_sym
       if property = @parameters[name]
         return property.value
       end
@@ -304,7 +305,7 @@ module Puppet
     autobefore(:file) do
       dependencies = []
       file_resources = catalog.resources.select { |resource| resource.type == :file }
-      children_file_resources = file_resources.select { |resource| File.expand_path(resource[:path]) =~ %r(^#{self[:name]}/.) }
+      children_file_resources = file_resources.select { |resource| File.expand_path(resource[:path]) =~ %r{^#{self[:name]}/.} }
       children_file_resources.each do |child|
         dependencies.push Pathname.new(child[:path])
       end
