@@ -1,7 +1,6 @@
 require 'puppet/provider/parsedfile'
 require 'puppet/provider/mount'
 
-fstab = nil
 fstab = case Facter.value(:osfamily)
         when 'Solaris' then '/etc/vfstab'
         when 'AIX' then '/etc/filesystems'
