@@ -28,7 +28,7 @@ describe Puppet::Type.type(:mount).provider(:parsed), unless: Puppet.features.mi
     end
   end
 
-  it 'defaults to /etc/vfstab on Solaris' do
+  it 'defaults to /etc/filesystems on AIX' do
     pending 'This test only works on AIX' unless Facter.value(:osfamily) == 'AIX'
     expect(described_class.default_target).to eq('/etc/filesystems')
   end
