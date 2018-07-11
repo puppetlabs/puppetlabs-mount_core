@@ -252,7 +252,7 @@ module Puppet
       end
 
       munge do |value|
-        value.gsub(/^(.+?)\/*$/, '\1')
+        value.gsub(%r{^(.+?)/*$}, '\1')
       end
     end
 
