@@ -36,6 +36,6 @@ agents.each do |agent|
   #------- TESTS -------#
   step 'verify mount with puppet'
   on(agent, puppet_resource('mount', "/#{name}")) do |res|
-    fail_test "didn't find the mount #{name}" unless res.stdout =~ /'\/#{name}':\s+ensure\s+=>\s+'unmounted'/
+    fail_test "didn't find the mount #{name}" unless res.stdout =~ %r{'/#{name}':\s+ensure\s+=>\s+'unmounted'}
   end
 end
