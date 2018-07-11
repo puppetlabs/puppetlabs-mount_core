@@ -138,7 +138,7 @@ Puppet::Type.type(:mount).provide(
         if result[:device] && result[:device].match(%r{^/})
           output << "\tdev\t\t= #{result[:device]}"
         elsif result[:device] && result[:device] != :absent
-          unless result[:device].match(%(^.+:/))
+          if result[:device] !~ %r{^.+:/}
             # Just skip this entry; it was malformed to begin with
             Puppet.err _("Mount[%{name}]: Field 'device' must be in the format of <absolute path> or <host>:<absolute path>") % { name: result[:name] }
             return result[:line]
