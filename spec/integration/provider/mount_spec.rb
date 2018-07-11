@@ -113,27 +113,25 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
                   it "should leave the system in the #{expected_final_state ? 'mounted' : 'unmounted'} state, #{expected_fstab_data ? 'with' : 'without'} data in /etc/fstab" do
                     if family == 'Solaris'
                       skip('Solaris: The mock :operatingsystem value does not get changed in lib/puppet/provider/mount/parsed.rb')
+                    elsif options_setting && options_setting.empty?
+                      expect { run_in_catalog(ensure: ensure_setting, options: options_setting) }.to raise_error Puppet::ResourceError
                     else
-                      if options_setting && options_setting.empty?
-                        expect { run_in_catalog(ensure: ensure_setting, options: options_setting) }.to raise_error Puppet::ResourceError
+                      if options_setting
+                        @desired_options = options_setting
+                        run_in_catalog(ensure: ensure_setting, options: options_setting)
                       else
-                        if options_setting
-                          @desired_options = options_setting
-                          run_in_catalog(ensure: ensure_setting, options: options_setting)
-                        else
-                          @desired_options = if initial_fstab_entry
-                                               @current_options
-                                             else
-                                               'defaults'
-                                             end
-                          run_in_catalog(ensure: ensure_setting)
-                        end
-                        expect(@mounted).to eq(expected_final_state)
-                        if expected_fstab_data
-                          expect(check_fstab(expected_fstab_data)).to eq('/dev/disk1s1')
-                        else
-                          expect(check_fstab(expected_fstab_data)).to eq(nil)
-                        end
+                        @desired_options = if initial_fstab_entry
+                                             @current_options
+                                           else
+                                             'defaults'
+                                           end
+                        run_in_catalog(ensure: ensure_setting)
+                      end
+                      expect(@mounted).to eq(expected_final_state)
+                      if expected_fstab_data
+                        expect(check_fstab(expected_fstab_data)).to eq('/dev/disk1s1')
+                      else
+                        expect(check_fstab(expected_fstab_data)).to eq(nil)
                       end
                     end
                   end
