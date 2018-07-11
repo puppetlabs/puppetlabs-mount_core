@@ -254,7 +254,7 @@ Puppet::Type.type(:mount).provide(
               %r{^(?:\S*\s+\S+\s+)(\S+)}
             else
               %r{ on (\S*)}
-    end
+            end
     instances = []
     mount_output = mountcmd.split("\n")
     if mount_output.length >= 2 && mount_output[1] =~ %r{^[- \t]*$}

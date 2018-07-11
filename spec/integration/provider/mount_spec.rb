@@ -105,7 +105,7 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
                                      initial_state
                                    else
                                      raise "Unknown ensure_setting #{ensure_setting}"
-            end
+                                   end
             expected_fstab_data = (ensure_setting != :absent)
             describe "When setting ensure => #{ensure_setting}" do
               ['local', 'journaled', '', nil].each do |options_setting|
