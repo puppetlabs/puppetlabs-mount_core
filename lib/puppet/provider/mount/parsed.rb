@@ -106,7 +106,8 @@ Puppet::Type.type(:mount).provide(
         memo.each do |_, k_v|
           next unless k_v && k_v.is_a?(String) && k_v.match('=')
           attr_name, attr_value = k_v.split('=', 2).map(&:strip)
-          if attr_map_name = property_map[attr_name.to_sym]
+          attr_map_name = property_map[attr_name.to_sym]
+          if attr_map_name
             # These are normal "options" options (see `man filesystems`)
             result[attr_map_name] = attr_value
           else
@@ -233,7 +234,8 @@ Puppet::Type.type(:mount).provide(
     #   set ensure to :ghost (if the user wants to add an entry
     #   to fstab we need to know if the device was mounted before)
     mountinstances.each do |hash|
-      next unless mount = resources[hash[:name]]
+      mount = resources[hash[:name]]
+      next unless mount
       case mount.provider.get(:ensure)
       when :absent # Mount not in fstab
         mount.provider.set(ensure: :ghost)

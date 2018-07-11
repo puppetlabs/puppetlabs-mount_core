@@ -287,9 +287,8 @@ module Puppet
 
     def value(name)
       name = name.to_sym
-      if property = @parameters[name]
-        return property.value
-      end
+      property = @parameters[name]
+      property ? property.value : nil
     end
 
     # Ensure that mounts higher up in the filesystem are mounted first
