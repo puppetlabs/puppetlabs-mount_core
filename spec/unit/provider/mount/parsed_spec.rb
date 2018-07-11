@@ -213,6 +213,10 @@ FSTAB
     platform = File.basename(fstab, '.fstab')
 
     describe "when calling instances on #{platform}" do
+      let(:instances) do
+        described_class.instances.map { |prov| { name: prov.get(:name), ensure: prov.get(:ensure) } }
+      end
+
       before :each do
         if Facter[:osfamily] == 'Solaris'
           platform == 'solaris' ||
@@ -234,26 +238,38 @@ FSTAB
         # because it is used by Puppet::Type::Mount.new to populate the
         # :target property.
         described_class.stubs(:default_target).returns fstab
-        @retrieve = described_class.instances.map { |prov| { name: prov.get(:name), ensure: prov.get(:ensure) } }
       end
 
       # Following mountpoint are present in all fstabs/mountoutputs
       describe 'on other platforms than Solaris', if: Facter.value(:osfamily) != 'Solaris' do
         it 'includes unmounted resources' do
-          expect(@retrieve).to include(name: '/', ensure: :mounted)
+          expect(instances).to include(name: '/', ensure: :mounted)
         end
 
         it 'includes mounted resources' do
-          expect(@retrieve).to include(name: '/boot', ensure: :unmounted)
+          expect(instances).to include(name: '/boot', ensure: :unmounted)
         end
 
         it 'includes ghost resources' do
-          expect(@retrieve).to include(name: '/ghost', ensure: :ghost)
+          expect(instances).to include(name: '/ghost', ensure: :ghost)
         end
       end
     end
 
     describe "when prefetching on #{platform}" do
+      let(:res_ghost) { Puppet::Type::Mount.new(name: '/ghost') }  # in no fake fstab
+      let(:res_mounted) { Puppet::Type::Mount.new(name: '/') }     # in every fake fstab
+      let(:res_unmounted) { Puppet::Type::Mount.new(name: '/boot') } # in every fake fstab
+      let(:res_absent) { Puppet::Type::Mount.new(name: '/absent') } # in no fake fstab
+      let(:resource_hash) do
+        # Simulate transaction.rb:prefetch
+        hash = {}
+        [res_ghost, res_mounted, res_unmounted, res_absent].each do |resource|
+          hash[resource.name] = resource
+        end
+        hash
+      end
+
       before :each do
         if Facter[:osfamily] == 'Solaris'
           platform == 'solaris' ||
@@ -275,39 +291,28 @@ FSTAB
         # because it is used by Puppet::Type::Mount.new to populate the
         # :target property.
         described_class.stubs(:default_target).returns fstab
-
-        @res_ghost = Puppet::Type::Mount.new(name: '/ghost')    # in no fake fstab
-        @res_mounted = Puppet::Type::Mount.new(name: '/')       # in every fake fstab
-        @res_unmounted = Puppet::Type::Mount.new(name: '/boot') # in every fake fstab
-        @res_absent = Puppet::Type::Mount.new(name: '/absent')  # in no fake fstab
-
-        # Simulate transaction.rb:prefetch
-        @resource_hash = {}
-        [@res_ghost, @res_mounted, @res_unmounted, @res_absent].each do |resource|
-          @resource_hash[resource.name] = resource
-        end
       end
 
       describe 'on other platforms than Solaris', if: Facter.value(:osfamily) != 'Solaris' do
         it 'sets :ensure to :unmounted if found in fstab but not mounted' do
-          described_class.prefetch(@resource_hash)
-          expect(@res_unmounted.provider.get(:ensure)).to eq(:unmounted)
+          described_class.prefetch(resource_hash)
+          expect(res_unmounted.provider.get(:ensure)).to eq(:unmounted)
         end
 
         it 'sets :ensure to :ghost if not found in fstab but mounted' do
-          described_class.prefetch(@resource_hash)
-          expect(@res_ghost.provider.get(:ensure)).to eq(:ghost)
+          described_class.prefetch(resource_hash)
+          expect(res_ghost.provider.get(:ensure)).to eq(:ghost)
         end
 
         it 'sets :ensure to :mounted if found in fstab and mounted' do
-          described_class.prefetch(@resource_hash)
-          expect(@res_mounted.provider.get(:ensure)).to eq(:mounted)
+          described_class.prefetch(resource_hash)
+          expect(res_mounted.provider.get(:ensure)).to eq(:mounted)
         end
       end
 
       it 'sets :ensure to :absent if not found in fstab and not mounted' do
-        described_class.prefetch(@resource_hash)
-        expect(@res_absent.provider.get(:ensure)).to eq(:absent)
+        described_class.prefetch(resource_hash)
+        expect(res_absent.provider.get(:ensure)).to eq(:absent)
       end
     end
   end
