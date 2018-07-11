@@ -24,3 +24,5 @@ Gemfile:
         version: '~> 0.14'
     ':development':
       - gem: puppet-strings
+.gitlab-ci.yml:
+  delete: true
