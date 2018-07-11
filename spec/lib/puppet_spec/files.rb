@@ -9,12 +9,8 @@ module PuppetSpec::Files
 
   def self.cleanup
     while path = @global_tempfiles.pop
-      begin
-        Dir.unstub(:entries)
-        FileUtils.rm_rf path, secure: true
-      rescue Errno::ENOENT
-        # nothing to do
-      end
+      Dir.unstub(:entries)
+      FileUtils.rm_rf path, secure: true
     end
   end
 
