@@ -76,6 +76,15 @@ Style/MultilineBlockChain:
   Enabled: false
 RSpec/FilePath:
   Enabled: false
+RSpec/InstanceVariable:
+  Exclude:
+  - spec/integration/provider/mount_spec.rb
+RSpec/AnyInstance:
+  Exclude:
+  - spec/integration/provider/mount_spec.rb
+RSpec/ExpectInHook:
+  Exclude:
+  - spec/integration/provider/mount_spec.rb
 RSpec/MessageSpies:
   EnforcedStyle: receive
 Style/Documentation:
