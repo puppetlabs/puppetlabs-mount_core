@@ -590,7 +590,7 @@ describe Puppet::Type.type(:mount), :unless => Puppet.features.microsoft_windows
     it "adds the parent autorequire and the file autorequire for a mount with one parent" do
       parent_relationship = var_mount.autorequire[0]
 
-      expect(var_mount.autorequire).to have_exactly(1).item
+      expect(var_mount.autorequire.size).to eq(1)
 
       expect(parent_relationship.source).to eq root_mount
       expect(parent_relationship.target).to eq var_mount
@@ -600,7 +600,7 @@ describe Puppet::Type.type(:mount), :unless => Puppet.features.microsoft_windows
       grandparent_relationship = log_mount.autorequire[0]
       parent_relationship = log_mount.autorequire[1]
 
-      expect(log_mount.autorequire).to have_exactly(2).items
+      expect(log_mount.autorequire.size).to eq(2)
 
       expect(grandparent_relationship.source).to eq root_mount
       expect(grandparent_relationship.target).to eq log_mount
@@ -612,7 +612,7 @@ describe Puppet::Type.type(:mount), :unless => Puppet.features.microsoft_windows
     it "adds the child autobefore for a mount with one file child" do
       child_relationship = log_mount.autobefore[0]
 
-      expect(log_mount.autobefore).to have_exactly(1).item
+      expect(log_mount.autobefore.size).to eq(1)
 
       expect(child_relationship.source).to eq log_mount
       expect(child_relationship.target).to eq puppet_file
@@ -622,7 +622,7 @@ describe Puppet::Type.type(:mount), :unless => Puppet.features.microsoft_windows
       child_relationship = var_mount.autobefore[0]
       grandchild_relationship = var_mount.autobefore[1]
 
-      expect(var_mount.autobefore).to have_exactly(2).items
+      expect(var_mount.autobefore.size).to eq(2)
 
       expect(child_relationship.source).to eq var_mount
       expect(child_relationship.target).to eq log_file
