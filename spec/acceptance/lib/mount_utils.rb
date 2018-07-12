@@ -1,4 +1,6 @@
 module MountUtils
+  module_function
+
   # Return the absolute path to the filesystem table file.
   # @param host [String] hostname
   # @return [String] path to the filesystem table file.
