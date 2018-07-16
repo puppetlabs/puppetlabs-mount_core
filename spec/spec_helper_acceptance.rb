@@ -13,3 +13,29 @@ RSpec.configure do |c|
     end
   end
 end
+
+shared_context 'mount context' do |agent|
+  let(:fs_file) { MountUtils.filesystem_file(agent) }
+  let(:fs_type) { MountUtils.filesystem_type(agent) }
+  let(:backup) { agent.tmpfile('mount-modify') }
+  let(:name) { "pl#{rand(999_999).to_i}" }
+
+  before(:each) do
+    on(agent, "cp #{fs_file} #{backup}", acceptable_exit_codes: [0, 1])
+  end
+
+  after(:each) do
+    # umount disk image
+    on(agent, "umount /#{name}", acceptable_exit_codes: (0..254))
+    # delete disk image
+    if agent['platform'] =~ %r{aix}
+      on(agent, "rmlv -f #{name}", acceptable_exit_codes: (0..254))
+    else
+      on(agent, "rm /tmp/#{name}", acceptable_exit_codes: (0..254))
+    end
+    # delete mount point
+    on(agent, "rm -fr /#{name}", acceptable_exit_codes: (0..254))
+    # restore the fstab file
+    on(agent, "mv #{backup} #{fs_file}", acceptable_exit_codes: (0..254))
+  end
+end
