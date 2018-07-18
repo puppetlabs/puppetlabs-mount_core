@@ -1,22 +1,11 @@
 
 # mount_core
 
-Welcome to your new module. A short overview of the generated parts can be found in the PDK documentation at https://puppet.com/pdk/latest/pdk_generating_modules.html .
-
-The README template below provides a starting point with details about what information to include in your README.
-
-
-
-
-
-
-
 #### Table of Contents
 
 1. [Description](#description)
 2. [Setup - The basics of getting started with mount_core](#setup)
     * [What mount_core affects](#what-mount_core-affects)
-    * [Setup requirements](#setup-requirements)
     * [Beginning with mount_core](#beginning-with-mount_core)
 3. [Usage - Configuration options and additional functionality](#usage)
 4. [Limitations - OS compatibility, etc.](#limitations)
@@ -24,72 +13,62 @@ The README template below provides a starting point with details about what info
 
 ## Description
 
-Briefly tell users why they might want to use your module. Explain what your module does and what kind of problems users can solve with it.
-
-This should be a fairly short description helps the user decide if your module is what they want.
-
+The mount_core module manages mounted filesystems and mount tables. The module
+has some limitations, and you may be better off using the [mount_providers
+module](https://forge.puppet.com/puppetlabs/mount_providers), which can manage
+mountpoints and mounttab resources independently.
 
 ## Setup
 
-### What mount_core affects **OPTIONAL**
+### What mount_core affects
 
-If it's obvious what your module touches, you can skip this section. For example, folks can probably figure out that your mysql_instance module affects their MySQL instances.
+The module can mount and unmount filesystems, and manage mount tables such as
+/etc/fstab, /etc/vfstab, or /etc/filesystems depending on your operating system.
 
-If there's more that they should know about, though, this is the place to mention:
+Mount resources can respond to refresh events, and can remount a filesystem in
+response to an event from another resource.
 
-* Files, packages, services, or operations that the module will alter, impact, or execute.
-* Dependencies that your module automatically installs.
-* Warnings or other important notices.
-
-### Setup Requirements **OPTIONAL**
-
-If your module requires anything extra before setting up (pluginsync enabled, another module, etc.), mention it here.
-
-If your most recent release breaks compatibility or requires particular steps for upgrading, you might want to include an additional "Upgrading" section here.
+Mount resources automatically create relationships with directories that are
+either ancestors of the mounted directory or children. This way puppet will
+automatically create ancestor directories before the mount point, and will do
+that before managing directories and files within the mounted directory.
 
 ### Beginning with mount_core
 
-The very basic steps needed for a user to get the module up and running. This can include setup steps, if necessary, or it can be an example of the most basic use of the module.
+To mount the device `/dev/foo` at `/mnt/foo` as read-only:
+
+```
+mount { '/mnt/foo':
+  ensure  => 'mounted',
+  device  => '/dev/foo',
+  fstype  => 'ext3',
+  options => 'ro',
+}
+```
 
 ## Usage
 
-Include usage examples for common use cases in the **Usage** section. Show your users how to use your module to solve problems, and be sure to include code examples. Include three to five examples of the most important or common tasks a user can accomplish with your module. Show users how to accomplish more complex tasks that involve different types, classes, and functions working in tandem.
+For details on usage, please see [the mount puppet docs](https://puppet.com/docs/puppet/latest/types/mount.html).
 
 ## Reference
 
-This section is deprecated. Instead, add reference information to your code as Puppet Strings comments, and then use Strings to generate a REFERENCE.md in your module. For details on how to add code comments and generate documentation with Strings, see the Puppet Strings [documentation](https://puppet.com/docs/puppet/latest/puppet_strings.html) and [style guide](https://puppet.com/docs/puppet/latest/puppet_strings_style.html)
+Please see REFERENCE.md for the reference documentation.
 
-If you aren't ready to use Strings yet, manually create a REFERENCE.md in the root of your module directory and list out each of your module's classes, defined types, facts, functions, Puppet tasks, task plans, and resource types and providers, along with the parameters for each.
+This module is documented using Puppet Strings.
 
-For each element (class, defined type, function, and so on), list:
+For a quick primer on how Strings works, please see [this blog post](https://puppet.com/blog/using-puppet-strings-generate-great-documentation-puppet-modules) or the [README.md](https://github.com/puppetlabs/puppet-strings/blob/master/README.md) for Puppet Strings.
 
-  * The data type, if applicable.
-  * A description of what the element does.
-  * Valid values, if the data type doesn't make it obvious.
-  * Default value, if any.
-
-For example:
-
+To generate documentation locally, run
 ```
-### `pet::cat`
-
-#### Parameters
-
-##### `meow`
-
-Enables vocalization in your cat. Valid options: 'string'.
-
-Default: 'medium-loud'.
+bundle install
+bundle exec puppet strings generate ./lib/**/*.rb
 ```
-
-## Limitations
-
-In the Limitations section, list any incompatibilities, known issues, or other warnings.
+This command will create a browsable `_index.html` file in the `doc` directory. The references available here are all generated from YARD-style comments embedded in the code base. When any development happens on this module, the impacted documentation should also be updated.
 
 ## Development
 
-In the Development section, tell other users the ground rules for contributing to your project and how they should submit their work.
+Puppet Labs modules on the Puppet Forge are open projects, and community contributions are essential for keeping them great. We can't access the huge number of platforms and myriad of hardware, software, and deployment configurations that Puppet is intended to serve.
 
-## Release Notes/Contributors/Etc. **Optional**
+We want to keep it as easy as possible to contribute changes so that our modules work in your environment. There are a few guidelines that we need contributors to follow so that we can have a chance of keeping on top of things.
 
-If you aren't using changelog, put your release notes here (though you should consider using changelog). You can also add any additional sections you feel are necessary or important to include here. Please use the `## ` header.
+For more information, see our [module contribution guide.](https://docs.puppetlabs.com/forge/contributing.html)

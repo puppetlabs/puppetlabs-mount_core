@@ -16,6 +16,10 @@ Puppet::Type.type(:mount).provide(
 ) do
   include Puppet::Provider::Mount
 
+  @doc = "Installs and manages host entries.  For most systems, these
+      entries will just be in `/etc/hosts`, but some systems (notably OS X)
+      will have different solutions."
+
   commands mountcmd: 'mount', umount: 'umount'
 
   @fields = case Facter.value(:osfamily)
