@@ -2,9 +2,11 @@
   "name": "puppetlabs-mount_core",
   "version": "0.1.0",
   "author": "Puppet Labs",
-  "summary": "",
+  "summary": "Manages mounted filesystems and mount tables.",
   "license": "Apache-2.0",
-  "source": "",
+  "source": "https://github.com/puppetlabs/puppetlabs-mount_core",
+  "project_page": "https://github.com/puppetlabs/puppetlabs-mount_core/blob/master/README.md",
+  "issues_url": "https://tickets.puppetlabs.com/projects/MODULES",
   "dependencies": [
 
   ],
