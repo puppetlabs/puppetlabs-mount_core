@@ -1,5 +1,5 @@
 require 'puppet/provider/parsedfile'
-require 'puppet/provider/mount'
+require_relative '../mount'
 
 fstab = case Facter.value(:osfamily)
         when 'Solaris' then '/etc/vfstab'
