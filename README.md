@@ -23,19 +23,19 @@ mountpoints and mounttab resources independently.
 ### What mount_core affects
 
 The module can mount and unmount filesystems, and manage mount tables such as
-/etc/fstab, /etc/vfstab, or /etc/filesystems depending on your operating system.
+`/etc/fstab`, `/etc/vfstab`, or `/etc/filesystems` depending on your operating system.
 
 Mount resources can respond to refresh events, and can remount a filesystem in
 response to an event from another resource.
 
 Mount resources automatically create relationships with directories that are
-either ancestors of the mounted directory or children. This way puppet will
+either ancestors of the mounted directory or children. This way Puppet will
 automatically create ancestor directories before the mount point, and will do
 that before managing directories and files within the mounted directory.
 
 ### Beginning with mount_core
 
-To mount the device `/dev/foo` at `/mnt/foo` as read-only:
+To mount the device `/dev/foo` at `/mnt/foo` as read-only, use the following code:
 
 ```
 mount { '/mnt/foo':
@@ -52,13 +52,13 @@ For details on usage, please see [the mount puppet docs](https://puppet.com/docs
 
 ## Reference
 
-Please see REFERENCE.md for the reference documentation.
+Please see `REFERENCE.md` for the reference documentation.
 
 This module is documented using Puppet Strings.
 
 For a quick primer on how Strings works, please see [this blog post](https://puppet.com/blog/using-puppet-strings-generate-great-documentation-puppet-modules) or the [README.md](https://github.com/puppetlabs/puppet-strings/blob/master/README.md) for Puppet Strings.
 
-To generate documentation locally, run
+To generate documentation locally, run the following command:
 ```
 bundle install
 bundle exec puppet strings generate ./lib/**/*.rb
