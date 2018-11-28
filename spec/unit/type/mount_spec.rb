@@ -512,6 +512,9 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
     end
 
     def run_in_catalog(*resources)
+      # rubocop:disable RSpec/AnyInstance
+      Puppet::Transaction::Persistence.any_instance.stubs(:save) if Puppet.version.to_f < 5.0
+      # rubocop:enable RSpec/AnyInstance
       Puppet::Util::Storage.stubs(:store)
       catalog = Puppet::Resource::Catalog.new
       catalog.add_resource(*resources)
