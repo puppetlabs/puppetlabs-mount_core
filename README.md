@@ -6,7 +6,6 @@
 1. [Description](#description)
 2. [Setup - The basics of getting started with mount_core](#setup)
     * [What mount_core affects](#what-mount_core-affects)
-    * [Beginning with mount_core](#beginning-with-mount_core)
 3. [Usage - Configuration options and additional functionality](#usage)
 4. [Limitations - OS compatibility, etc.](#limitations)
 5. [Development - Guide for contributing to the module](#development)
@@ -33,7 +32,7 @@ either ancestors of the mounted directory or children. This way Puppet will
 automatically create ancestor directories before the mount point, and will do
 that before managing directories and files within the mounted directory.
 
-### Beginning with mount_core
+## Usage
 
 To mount the device `/dev/foo` at `/mnt/foo` as read-only, use the following code:
 
@@ -46,13 +45,9 @@ mount { '/mnt/foo':
 }
 ```
 
-## Usage
-
-For details on usage, please see [the mount puppet docs](https://puppet.com/docs/puppet/latest/types/mount.html).
-
 ## Reference
 
-Please see `REFERENCE.md` for the reference documentation.
+Please see [`REFERENCE.md`](REFERENCE.md) for the reference documentation.
 
 This module is documented using Puppet Strings.
 
