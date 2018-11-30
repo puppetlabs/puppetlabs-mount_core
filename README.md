@@ -5,11 +5,12 @@
 
 1. [Description](#description)
 2. [Setup - The basics of getting started with mount_core](#setup)
-    * [What mount_core affects](#what-mount_core-affects)
+    * [What mount_core affects](#what-mount-affects)
 3. [Usage - Configuration options and additional functionality](#usage)
-4. [Limitations - OS compatibility, etc.](#limitations)
+4. [Reference - An under-the-hook peek at what the module is doing and how](#reference)
 5. [Development - Guide for contributing to the module](#development)
 
+<a id="description"></a>
 ## Description
 
 The mount_core module manages mounted filesystems and mount tables. The module
@@ -17,8 +18,10 @@ has some limitations, and you may be better off using the [mount_providers
 module](https://forge.puppet.com/puppetlabs/mount_providers), which can manage
 mountpoints and mounttab resources independently.
 
+<a id="setup"></a>
 ## Setup
 
+<a id="what-mount-affects"></a>
 ### What mount_core affects
 
 The module can mount and unmount filesystems, and manage mount tables such as
@@ -32,6 +35,7 @@ either ancestors of the mounted directory or children. This way Puppet will
 automatically create ancestor directories before the mount point, and will do
 that before managing directories and files within the mounted directory.
 
+<a id="usage"></a>
 ## Usage
 
 To mount the device `/dev/foo` at `/mnt/foo` as read-only, use the following code:
@@ -45,9 +49,10 @@ mount { '/mnt/foo':
 }
 ```
 
+<a id="reference"></a>
 ## Reference
 
-Please see [`REFERENCE.md`](REFERENCE.md) for the reference documentation.
+Please see REFERENCE.md for the reference documentation.
 
 This module is documented using Puppet Strings.
 
@@ -60,6 +65,7 @@ bundle exec puppet strings generate ./lib/**/*.rb
 ```
 This command will create a browsable `_index.html` file in the `doc` directory. The references available here are all generated from YARD-style comments embedded in the code base. When any development happens on this module, the impacted documentation should also be updated.
 
+<a id="development"></a>
 ## Development
 
 Puppet Labs modules on the Puppet Forge are open projects, and community contributions are essential for keeping them great. We can't access the huge number of platforms and myriad of hardware, software, and deployment configurations that Puppet is intended to serve.
