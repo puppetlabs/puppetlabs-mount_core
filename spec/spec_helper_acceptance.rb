@@ -19,6 +19,7 @@ shared_context 'mount context' do |agent|
   let(:fs_type) { MountUtils.filesystem_type(agent) }
   let(:backup) { agent.tmpfile('mount-modify') }
   let(:name) { "pl#{rand(999_999).to_i}" }
+  let(:name_w_slash) { "pl#{rand(999_999).to_i}\/" }
 
   before(:each) do
     on(agent, "cp #{fs_file} #{backup}", acceptable_exit_codes: [0, 1])

@@ -205,6 +205,9 @@ Puppet::Type.type(:mount).provide(
   # Every entry in fstab is :unmounted until we can prove different
   def self.prefetch_hook(target_records)
     target_records.map do |record|
+      # Eat the trailing slash(es) of mountpoints in fstab
+      # This mimics the behavior of munging the resource title
+      record[:name].gsub!(%r{^(.+?)/*$}, '\1') unless record[:name].nil?
       record[:ensure] = :unmounted if record[:record_type] == :parsed
       record
     end
