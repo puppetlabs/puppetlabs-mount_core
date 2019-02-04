@@ -1,6 +1,6 @@
 {
   "name": "puppetlabs-mount_core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Puppet Labs",
   "summary": "Manages mounted filesystems and mount tables.",
   "license": "Apache-2.0",
@@ -50,7 +50,7 @@
     {
       "operatingsystem": "Fedora",
       "operatingsystemrelease": [
-        "25"
+        "28"
       ]
     },
     {
