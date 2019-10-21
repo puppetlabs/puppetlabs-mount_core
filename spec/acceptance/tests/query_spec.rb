@@ -17,6 +17,16 @@ RSpec.context 'when managing mounts' do
         end
       end
 
+      it 'finds an existing filesystem table entry containing whitespace' do
+        step '(setup) add entry to filesystem table'
+        MountUtils.add_entry_to_filesystem_table(agent, name_w_whitespace)
+
+        step 'verify mount with puppet'
+        on(agent, puppet_resource('mount', "'/#{name_w_whitespace}'")) do |result|
+          fail_test "didn't find the mount #{name_w_whitespace}" unless result.stdout =~ %r{'/#{name_w_whitespace}':\s+ensure\s+=>\s+'unmounted'}
+        end
+      end
+
       # There is a discrepancy between how `puppet resource` and `puppet apply` handle this case.
       # With this patch, using a resource title with a trailing slash in `puppet apply` will match a mount resource without a trailing slash.
       # However, `puppet resource mount` with a trailing slash will not match.

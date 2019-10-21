@@ -124,13 +124,16 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
   end
 
   newproperty(:device) do
-    desc "The device providing the mount.  This can be whatever
-        device is supporting by the mount, including network
-        devices or devices specified by UUID rather than device
-        path, depending on the operating system."
+    desc "The device providing the mount.  This can be whatever device
+        is supporting by the mount, including network devices or
+        devices specified by UUID rather than device path, depending
+        on the operating system. On Linux systems it can contain
+        whitespace."
 
     validate do |value|
-      raise Puppet::Error, _('device must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
+      unless Facter.value(:kernel) == 'Linux'
+        raise Puppet::Error, _('device must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
+      end
     end
   end
 
@@ -242,12 +245,14 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
   end
 
   newparam(:name) do
-    desc 'The mount path for the mount.'
+    desc 'The mount path for the mount. On Linux systems it can contain whitespace.'
 
     isnamevar
 
     validate do |value|
-      raise Puppet::Error, _('name must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
+      unless Facter.value(:kernel) == 'Linux'
+        raise Puppet::Error, _('name must not contain whitespace: %{value}') % { value: value } if value =~ %r{\s}
+      end
     end
 
     munge do |value|

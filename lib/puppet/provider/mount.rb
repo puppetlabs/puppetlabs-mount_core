@@ -60,7 +60,7 @@ module Puppet::Provider::Mount
 
   # This only works when the mount point is synced to the fstab.
   def unmount
-    umount(resource[:name])
+    umount resource[:name]
 
     # Update property hash for future queries (e.g. refresh is called)
     case get(:ensure)

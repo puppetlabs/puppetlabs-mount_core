@@ -80,8 +80,16 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
         expect(described_class.new(name: '/foo/bar/baz//')[:name]).to eq('/foo/bar/baz')
       end
 
-      it 'does not allow spaces' do
-        expect { described_class.new(name: '/mnt/foo bar') }.to raise_error Puppet::Error, %r{name.*whitespace}
+      describe 'for whitespace' do
+        it 'does not allow spaces when kernel is not Linux' do
+          Facter.stubs(:value).with(:kernel).returns 'Darwin'
+          expect { described_class.new(name: '/mnt/foo bar') }.to raise_error Puppet::Error, %r{name.*whitespace}
+        end
+
+        it 'allows spaces when kernel is Linux' do
+          Facter.stubs(:value).with(:kernel).returns 'Linux'
+          expect { described_class.new(name: '/mnt/foo bar') }.not_to raise_error Puppet::Error, %r{name.*whitespace}
+        end
       end
 
       it 'allows pseudo mountpoints (e.g. swap)' do
@@ -138,17 +146,30 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
         expect { described_class.new(name: '/foo', ensure: :present, device: 'proc') }.not_to raise_error
       end
 
+      describe 'for whitespace' do
+        it 'does not allow spaces when kernel is not Linux' do
+          Facter.stubs(:value).with(:kernel).returns 'Darwin'
+          expect { described_class.new(name: '/foo', ensure: :present, device: '/dev/my dev/foo') }.to raise_error Puppet::Error, %r{device.*whitespace}
+          expect { described_class.new(name: '/foo', ensure: :present, device: "/dev/my\tdev/foo") }.to raise_error Puppet::Error, %r{device.*whitespace}
+        end
+
+        it 'does allow spaces when kernel is Linux' do
+          Facter.stubs(:value).with(:kernel).returns 'Linux'
+          expect { described_class.new(name: '/foo', ensure: :present, device: '/dev/my dev/foo') }.not_to raise_error Puppet::Error, %r{device.*whitespace}
+          expect { described_class.new(name: '/foo', ensure: :present, device: "/dev/my\tdev/foo") }.not_to raise_error Puppet::Error, %r{device.*whitespace}
+        end
+      end
+
       it 'does not support whitespace in device' do
-        expect { described_class.new(name: '/foo', ensure: :present, device: '/dev/my dev/foo') }.to raise_error Puppet::Error, %r{device.*whitespace}
-        expect { described_class.new(name: '/foo', ensure: :present, device: "/dev/my\tdev/foo") }.to raise_error Puppet::Error, %r{device.*whitespace}
       end
     end
 
     describe 'for blockdevice' do
       before :each do
         # blockdevice is only used on Solaris
-        Facter.stubs(:value).with(:operatingsystem).returns 'Solaris'
-        Facter.stubs(:value).with(:osfamily).returns 'Solaris'
+        [:osfamily, :operatingsystem, :kernel].each do |fact|
+          Facter.stubs(:value).with(fact).returns 'Solaris'
+        end
       end
 
       it 'supports normal /dev/rdsk paths for blockdevice' do
@@ -231,20 +252,23 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
       end
 
       it 'supports - on Solaris' do
-        Facter.stubs(:value).with(:operatingsystem).returns 'Solaris'
-        Facter.stubs(:value).with(:osfamily).returns 'Solaris'
+        [:osfamily, :operatingsystem, :kernel].each do |fact|
+          Facter.stubs(:value).with(fact).returns 'Solaris'
+        end
         expect { described_class.new(name: '/foo', ensure: :present, pass: '-') }.not_to raise_error
       end
 
       it 'defaults to 0 on non Solaris' do
-        Facter.stubs(:value).with(:osfamily).returns nil
-        Facter.stubs(:value).with(:operatingsystem).returns 'HP-UX'
+        [:osfamily, :operatingsystem, :kernel].each do |fact|
+          Facter.stubs(:value).with(fact).returns 'HP-UX'
+        end
         expect(described_class.new(name: '/foo', ensure: :present)[:pass]).to eq(0)
       end
 
       it 'defaults to - on Solaris' do
-        Facter.stubs(:value).with(:operatingsystem).returns 'Solaris'
-        Facter.stubs(:value).with(:osfamily).returns 'Solaris'
+        [:osfamily, :operatingsystem, :kernel].each do |fact|
+          Facter.stubs(:value).with(fact).returns 'Solaris'
+        end
         expect(described_class.new(name: '/foo', ensure: :present)[:pass]).to eq('-')
       end
     end

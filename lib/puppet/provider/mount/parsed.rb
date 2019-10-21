@@ -186,6 +186,28 @@ Puppet::Type.type(:mount).provide(
     end
   else
     record_line name, fields: @fields, separator: %r{\s+}, joiner: "\t", optional: optional_fields, block_eval: :instance do
+      def to_line(record)
+        # convert whitespace to ASCII before writing to fstab
+        # duplicate the record since we don't want our resource to have ASCII whitespaces
+        result = record.dup
+        [:device, :name].each do |param|
+          if record[param].is_a?(String)
+            result[param] = result[param].gsub(' ', '\\\040') if result[param].include?(' ')
+          end
+        end
+        join(result)
+      end
+
+      def post_parse(record)
+        # handle ASCII-encoded whitespaces in fstab
+        [:device, :name].each do |param|
+          if record[param].is_a?(String)
+            record[param].gsub!('\040', ' ') if record[param].include?('\040')
+          end
+        end
+        record
+      end
+
       def pre_gen(record)
         if !record[:options] || record[:options].empty?
           if Facter.value(:kernel) == 'Linux'
@@ -253,7 +275,6 @@ Puppet::Type.type(:mount).provide(
   end
 
   def self.mountinstances
-    # XXX: Will not work for mount points that have spaces in path (does fstab support this anyways?)
     regex = case Facter.value(:osfamily)
             when 'Darwin'
               %r{ on (?:/private/var/automount)?(\S*)}
@@ -261,8 +282,10 @@ Puppet::Type.type(:mount).provide(
               %r{^(\S*) on }
             when 'AIX'
               %r{^(?:\S*\s+\S+\s+)(\S+)}
+            when %r{FreeBSD|NetBSD}i
+              %r{ on (.*) \(}
             else
-              %r{ on (\S*)}
+              %r{ on (.*) type }
             end
     instances = []
     mount_output = mountcmd.split("\n")

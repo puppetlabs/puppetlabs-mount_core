@@ -47,10 +47,11 @@ mount/unmount status.
 
 ##### `device`
 
-The device providing the mount.  This can be whatever
-device is supporting by the mount, including network
-devices or devices specified by UUID rather than device
-path, depending on the operating system.
+The device providing the mount.  This can be whatever device
+is supporting by the mount, including network devices or
+devices specified by UUID rather than device path, depending
+on the operating system. On Linux systems it can contain
+whitespace.
 
 ##### `blockdevice`
 
@@ -100,7 +101,7 @@ The following parameters are available in the `mount` type.
 
 namevar
 
-The mount path for the mount.
+The mount path for the mount. On Linux systems it can contain whitespace.
 
 ##### `remounts`
 
