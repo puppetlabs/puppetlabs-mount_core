@@ -171,6 +171,7 @@ FSTAB
       expect(mounts[3]).to eq(name: '/usr/portage', mounted: :yes)
       expect(mounts[4]).to eq(name: '/ghost', mounted: :yes)
       expect(mounts[5]).to eq(name: '/run', mounted: :yes)
+      expect(mounts[6]).to eq(name: '/white space', mounted: :yes)
     end
 
     it 'gets name from mountoutput found on AIX' do
@@ -219,6 +220,7 @@ FSTAB
       end
 
       before :each do
+        Facter.stubs(:value).with(:osfamily).returns platform
         if Facter[:osfamily] == 'Solaris'
           platform == 'solaris' ||
             skip("We need to stub the operatingsystem fact at load time, but can't")
@@ -257,6 +259,62 @@ FSTAB
       end
     end
 
+    describe 'when prefetching on Linux' do
+      let(:res_ghost_whitespace) { Puppet::Type::Mount.new(name: '/ghost white space') } # in no fake fstab
+      let(:res_trailing_whitespace) { Puppet::Type::Mount.new(name: '/trailing white space/') } # in Linux fake fstab
+      let(:res_mounted_whitespace) { Puppet::Type::Mount.new(name: '/white space') } # in Linux fake fstab
+      let(:res_unmounted_whitespace) { Puppet::Type::Mount.new(name: '/unmounted white space') } # in Linux fake fstab
+      let(:res_absent_whitespace) { Puppet::Type::Mount.new(name: '/absent white space') } # in no fake fstab
+      let(:resource_hash) do
+        hash = {}
+        [res_ghost_whitespace, res_trailing_whitespace, res_mounted_whitespace, res_unmounted_whitespace, res_absent_whitespace].each do |resource|
+          hash[resource.name] = resource
+        end
+        hash
+      end
+
+      before :each do
+        Facter.stubs(:value).with(:kernel).returns 'Linux'
+        Facter.stubs(:value).with(:operatingsystem).returns 'RedHat'
+        Facter.stubs(:value).with(:osfamily).returns 'RedHat'
+        begin
+          mount = my_fixture('linux.mount')
+          described_class.stubs(:mountcmd).returns File.read(mount)
+        rescue
+          skip 'is linux.mount missing at this point?'
+        end
+
+        described_class.stubs(:default_target).returns my_fixture('linux.fstab')
+      end
+
+      describe 'when handling whitespaces in mountpoints' do
+        it 'sets :ensure to :mounted if found in fstab and mounted' do
+          described_class.prefetch(resource_hash)
+          expect(res_mounted_whitespace.provider.get(:ensure)).to eq(:mounted)
+        end
+
+        it 'sets :ensure to :unmounted if found in fstab but not mounted' do
+          described_class.prefetch(resource_hash)
+          expect(res_unmounted_whitespace.provider.get(:ensure)).to eq(:unmounted)
+        end
+
+        it 'sets :ensure to :ghost if not found in fstab but mounted' do
+          described_class.prefetch(resource_hash)
+          expect(res_ghost_whitespace.provider.get(:ensure)).to eq(:ghost)
+        end
+
+        it 'strips trailing slashes from resource titles' do
+          described_class.prefetch(resource_hash)
+          expect(res_trailing_whitespace.provider.get(:ensure)).to eq(:mounted)
+        end
+
+        it 'sets :ensure to :absent if not found in fstab and not mounted' do
+          described_class.prefetch(resource_hash)
+          expect(res_absent_whitespace.provider.get(:ensure)).to eq(:absent)
+        end
+      end
+    end
+
     describe "when prefetching on #{platform}" do
       let(:res_ghost) { Puppet::Type::Mount.new(name: '/ghost') }  # in no fake fstab
       let(:res_mounted) { Puppet::Type::Mount.new(name: '/') }     # in every fake fstab
@@ -273,6 +331,10 @@ FSTAB
       end
 
       before :each do
+        [:osfamily, :operatingsystem, :kernel].each do |fact|
+          Facter.stubs(:value).with(fact).returns platform
+        end
+
         if Facter[:osfamily] == 'Solaris'
           platform == 'solaris' ||
             skip("We need to stub the operatingsystem fact at load time, but can't")

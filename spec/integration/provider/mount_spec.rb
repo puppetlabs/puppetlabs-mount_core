@@ -32,7 +32,7 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
       when %r{/s?bin/mount}
         if command.length == 1
           if @mounted
-            "#{@current_device} on /Volumes/foo_disk (msdos, #{@current_options})\n"
+            "#{@current_device} on /Volumes/foo_disk type msdos (msdos, #{@current_options})\n"
           else
             ''
           end

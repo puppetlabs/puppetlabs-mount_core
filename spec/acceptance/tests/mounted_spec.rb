@@ -38,6 +38,32 @@ RSpec.context 'when managing mounts' do
           fail_test "didn't find the mount #{name} mounted" unless result.stdout.include?(name)
         end
       end
+
+      it 'creates a whitespaced entry in the filesystem table and mounts it' do
+        step '(setup) create mount point'
+        on(agent, "mkdir '/#{name_w_whitespace}'", acceptable_exit_codes: [0, 1])
+
+        step '(setup) create new filesystem to be mounted'
+        MountUtils.create_filesystem(agent, name_w_whitespace)
+
+        step 'create a mount with puppet (mounted)'
+        args = ['ensure=mounted',
+                "fstype=#{fs_type}",
+                'options=loop',
+                "device='/tmp/#{name_w_whitespace}'"]
+        on(agent, puppet_resource('mount', "'/#{name_w_whitespace}'", args))
+
+        step 'verify entry in filesystem table'
+        on(agent, "cat #{fs_file}") do |result|
+          munged_name = name_w_whitespace.gsub(' ', '\\\040')
+          fail_test "didn't find the mount '#{name_w_whitespace}'" unless result.stdout.include?(munged_name)
+        end
+
+        step 'verify entry is mounted'
+        on(agent, 'mount') do |result|
+          fail_test "didn't find the mount '#{name_w_whitespace}' mounted" unless result.stdout.include?(name_w_whitespace)
+        end
+      end
     end
   end
 end
