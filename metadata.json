@@ -1,7 +1,7 @@
 {
   "name": "puppetlabs-mount_core",
   "version": "1.0.3",
-  "author": "Puppet Labs",
+  "author": "puppetlabs",
   "summary": "Manages mounted filesystems and mount tables.",
   "license": "Apache-2.0",
   "source": "https://github.com/puppetlabs/puppetlabs-mount_core",
