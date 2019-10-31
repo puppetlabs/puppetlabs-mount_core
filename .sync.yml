@@ -56,3 +56,6 @@ appveyor.yml:
   remove_includes:
     - env: PUPPET_GEM_VERSION="~> 4.0" CHECK=parallel_spec
       rvm: 2.1.9
+
+Rakefile:
+  changelog_version_tag_pattern: '%s'
