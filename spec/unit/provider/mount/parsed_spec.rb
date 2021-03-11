@@ -19,7 +19,7 @@ describe Puppet::Type.type(:mount).provider(:parsed), unless: Puppet.features.mi
     "/dev/vg00/lv01\t/spare   \t  \t   ext3    defaults\t1 2"
   end
 
-  # LAK:FIXME I can't mock Facter because this test happens at parse-time.
+  # LAK:FIXME I can't double Facter because this test happens at parse-time.
   it 'defaults to /etc/vfstab on Solaris' do
     if Facter.value(:osfamily) != 'Solaris'
       skip('This test only works on Solaris')
@@ -112,8 +112,8 @@ FSTAB
 
   describe 'mountinstances' do
     it 'gets name from mountoutput found on Solaris' do
-      Facter.stubs(:value).with(:osfamily).returns 'Solaris'
-      described_class.stubs(:mountcmd).returns(File.read(my_fixture('solaris.mount')))
+      allow(Facter).to receive(:value).with(:osfamily).and_return 'Solaris'
+      allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('solaris.mount')))
       mounts = described_class.mountinstances
       expect(mounts.size).to eq(6)
       expect(mounts[0]).to eq(name: '/', mounted: :yes)
@@ -125,8 +125,8 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on HP-UX' do
-      Facter.stubs(:value).with(:osfamily).returns 'HP-UX'
-      described_class.stubs(:mountcmd).returns(File.read(my_fixture('hpux.mount')))
+      allow(Facter).to receive(:value).with(:osfamily).and_return 'HP-UX'
+      allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('hpux.mount')))
       mounts = described_class.mountinstances
       expect(mounts.size).to eq(17)
       expect(mounts[0]).to eq(name: '/', mounted: :yes)
@@ -149,8 +149,8 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on Darwin' do
-      Facter.stubs(:value).with(:osfamily).returns 'Darwin'
-      described_class.stubs(:mountcmd).returns(File.read(my_fixture('darwin.mount')))
+      allow(Facter).to receive(:value).with(:osfamily).and_return 'Darwin'
+      allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('darwin.mount')))
       mounts = described_class.mountinstances
       expect(mounts.size).to eq(6)
       expect(mounts[0]).to eq(name: '/', mounted: :yes)
@@ -162,8 +162,8 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on Linux' do
-      Facter.stubs(:value).with(:osfamily).returns 'Gentoo'
-      described_class.stubs(:mountcmd).returns(File.read(my_fixture('linux.mount')))
+      allow(Facter).to receive(:value).with(:osfamily).and_return 'Gentoo'
+      allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('linux.mount')))
       mounts = described_class.mountinstances
       expect(mounts[0]).to eq(name: '/', mounted: :yes)
       expect(mounts[1]).to eq(name: '/lib64/rc/init.d', mounted: :yes)
@@ -175,8 +175,8 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on AIX' do
-      Facter.stubs(:value).with(:osfamily).returns 'AIX'
-      described_class.stubs(:mountcmd).returns(File.read(my_fixture('aix.mount')))
+      allow(Facter).to receive(:value).with(:osfamily).and_return 'AIX'
+      allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('aix.mount')))
       mounts = described_class.mountinstances
       expect(mounts[0]).to eq(name: '/', mounted: :yes)
       expect(mounts[1]).to eq(name: '/usr', mounted: :yes)
@@ -190,16 +190,16 @@ FSTAB
     end
 
     it 'raises an error if a line is not understandable' do
-      described_class.stubs(:mountcmd).returns('bazinga!')
+      allow(described_class).to receive(:mountcmd).and_return('bazinga!')
       expect { described_class.mountinstances }.to raise_error Puppet::Error, 'Could not understand line bazinga! from mount output'
     end
   end
 
   it "supports AIX's paragraph based /etc/filesystems" do
     pending 'This test only works on AIX' unless Facter.value(:osfamily) == 'AIX'
-    Facter.stubs(:value).with(:osfamily).returns 'AIX'
-    described_class.stubs(:default_target).returns my_fixture('aix.filesystems')
-    described_class.stubs(:mountcmd).returns File.read(my_fixture('aix.mount'))
+    allow(Facter).to receive(:value).with(:osfamily).and_return 'AIX'
+    allow(described_class).to receive(:default_target).and_return my_fixture('aix.filesystems')
+    allow(described_class).to receive(:mountcmd).and_return File.read(my_fixture('aix.mount'))
     instances = described_class.instances
     expect(instances[0].name).to eq('/')
     expect(instances[0].device).to eq('/dev/hd4')
@@ -220,19 +220,19 @@ FSTAB
       end
 
       before :each do
-        Facter.stubs(:value).with(:osfamily).returns platform
+        allow(Facter).to receive(:value).with(:osfamily).and_return platform
         if Facter[:osfamily] == 'Solaris'
           platform == 'solaris' ||
-            skip("We need to stub the operatingsystem fact at load time, but can't")
+            skip("We need to double the operatingsystem fact at load time, but can't")
         else
           platform != 'solaris' ||
-            skip("We need to stub the operatingsystem fact at load time, but can't")
+            skip("We need to double the operatingsystem fact at load time, but can't")
         end
 
         # Stub the mount output to our fixture.
         begin
           mount = my_fixture(platform + '.mount')
-          described_class.stubs(:mountcmd).returns File.read(mount)
+          allow(described_class).to receive(:mountcmd).and_return File.read(mount)
         rescue
           skip "is #{platform}.mount missing at this point?"
         end
@@ -240,7 +240,7 @@ FSTAB
         # Note: we have to stub default_target before creating resources
         # because it is used by Puppet::Type::Mount.new to populate the
         # :target property.
-        described_class.stubs(:default_target).returns fstab
+        allow(described_class).to receive(:default_target).and_return fstab
       end
 
       # Following mountpoint are present in all fstabs/mountoutputs
@@ -274,17 +274,17 @@ FSTAB
       end
 
       before :each do
-        Facter.stubs(:value).with(:kernel).returns 'Linux'
-        Facter.stubs(:value).with(:operatingsystem).returns 'RedHat'
-        Facter.stubs(:value).with(:osfamily).returns 'RedHat'
+        allow(Facter).to receive(:value).with(:kernel).and_return 'Linux'
+        allow(Facter).to receive(:value).with(:operatingsystem).and_return 'RedHat'
+        allow(Facter).to receive(:value).with(:osfamily).and_return 'RedHat'
         begin
           mount = my_fixture('linux.mount')
-          described_class.stubs(:mountcmd).returns File.read(mount)
+          allow(described_class).to receive(:mountcmd).and_return File.read(mount)
         rescue
           skip 'is linux.mount missing at this point?'
         end
 
-        described_class.stubs(:default_target).returns my_fixture('linux.fstab')
+        allow(described_class).to receive(:default_target).and_return my_fixture('linux.fstab')
       end
 
       describe 'when handling whitespaces in mountpoints' do
@@ -332,21 +332,21 @@ FSTAB
 
       before :each do
         [:osfamily, :operatingsystem, :kernel].each do |fact|
-          Facter.stubs(:value).with(fact).returns platform
+          allow(Facter).to receive(:value).with(fact).and_return platform
         end
 
         if Facter[:osfamily] == 'Solaris'
           platform == 'solaris' ||
-            skip("We need to stub the operatingsystem fact at load time, but can't")
+            skip("We need to double the operatingsystem fact at load time, but can't")
         else
           platform != 'solaris' ||
-            skip("We need to stub the operatingsystem fact at load time, but can't")
+            skip("We need to double the operatingsystem fact at load time, but can't")
         end
 
         # Stub the mount output to our fixture.
         begin
           mount = my_fixture(platform + '.mount')
-          described_class.stubs(:mountcmd).returns File.read(mount)
+          allow(described_class).to receive(:mountcmd).and_return File.read(mount)
         rescue
           skip "is #{platform}.mount missing at this point?"
         end
@@ -354,7 +354,7 @@ FSTAB
         # Note: we have to stub default_target before creating resources
         # because it is used by Puppet::Type::Mount.new to populate the
         # :target property.
-        described_class.stubs(:default_target).returns fstab
+        allow(described_class).to receive(:default_target).and_return fstab
       end
 
       describe 'on other platforms than Solaris', if: Facter.value(:osfamily) != 'Solaris' do

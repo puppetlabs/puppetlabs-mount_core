@@ -10,7 +10,6 @@ module PuppetSpec::Files
   def self.cleanup
     until @global_tempfiles.empty?
       path = @global_tempfiles.pop
-      Dir.unstub(:entries)
       FileUtils.rm_rf path, secure: true
     end
   end
