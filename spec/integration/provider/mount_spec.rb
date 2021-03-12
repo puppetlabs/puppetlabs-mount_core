@@ -20,13 +20,13 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
     @current_options = 'local'
     @current_device = '/dev/disk1s1'
     Puppet[:digest_algorithm] = 'md5'
-    Puppet::Type.type(:mount).defaultprovider.stubs(:default_target).returns(@fake_fstab)
-    Facter.stubs(:value).with(:hostname).returns('some_host')
-    Facter.stubs(:value).with(:domain).returns('some_domain')
-    Facter.stubs(:value).with(:kernel).returns('Linux')
-    Facter.stubs(:value).with(:operatingsystem).returns('RedHat')
-    Facter.stubs(:value).with(:osfamily).returns('RedHat')
-    Facter.stubs(:value).with(:fips_enabled).returns(false)
+    allow(Puppet::Type.type(:mount).defaultprovider).to receive(:default_target).and_return(@fake_fstab)
+    allow(Facter).to receive(:value).with(:hostname).and_return('some_host')
+    allow(Facter).to receive(:value).with(:domain).and_return('some_domain')
+    allow(Facter).to receive(:value).with(:kernel).and_return('Linux')
+    allow(Facter).to receive(:value).with(:operatingsystem).and_return('RedHat')
+    allow(Facter).to receive(:value).with(:osfamily).and_return('RedHat')
+    allow(Facter).to receive(:value).with(:fips_enabled).and_return(false)
     Puppet::Util::ExecutionStub.set do |command, _options|
       case command[0]
       when %r{/s?bin/mount}
@@ -75,8 +75,8 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
   def run_in_catalog(settings)
     resource = Puppet::Type.type(:mount).new(settings.merge(name: '/Volumes/foo_disk',
                                                             device: '/dev/disk1s1', fstype: 'msdos'))
-    Puppet::FileBucket::Dipper.any_instance.stubs(:backup) # Don't backup to the filebucket
-    resource.expects(:err).never
+    allow_any_instance_of(Puppet::FileBucket::Dipper).to receive(:backup) # Don't backup to the filebucket
+    expect(resource).not_to receive(:err)
     catalog = Puppet::Resource::Catalog.new
     catalog.host_config = false # Stop Puppet from doing a bunch of magic
     catalog.add_resource resource
@@ -112,7 +112,7 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
                 describe "When setting options => '#{options_setting}'" do
                   it "should leave the system in the #{expected_final_state ? 'mounted' : 'unmounted'} state, #{expected_fstab_data ? 'with' : 'without'} data in /etc/fstab" do
                     if family == 'Solaris'
-                      skip('Solaris: The mock :operatingsystem value does not get changed in lib/puppet/provider/mount/parsed.rb')
+                      skip('Solaris: The double :operatingsystem value does not get changed in lib/puppet/provider/mount/parsed.rb')
                     elsif options_setting && options_setting.empty?
                       expect { run_in_catalog(ensure: ensure_setting, options: options_setting) }.to raise_error Puppet::ResourceError
                     else

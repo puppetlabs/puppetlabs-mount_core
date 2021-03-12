@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? do
   before :each do
-    Puppet::Type.type(:mount).stubs(:defaultprovider).returns providerclass
+    allow(Puppet::Type.type(:mount)).to receive(:defaultprovider).and_return providerclass
   end
 
   let :providerclass do
@@ -82,12 +82,12 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
 
       describe 'for whitespace' do
         it 'does not allow spaces when kernel is not Linux' do
-          Facter.stubs(:value).with(:kernel).returns 'Darwin'
+          allow(Facter).to receive(:value).with(:kernel).and_return 'Darwin'
           expect { described_class.new(name: '/mnt/foo bar') }.to raise_error Puppet::Error, %r{name.*whitespace}
         end
 
         it 'allows spaces when kernel is Linux' do
-          Facter.stubs(:value).with(:kernel).returns 'Linux'
+          allow(Facter).to receive(:value).with(:kernel).and_return 'Linux'
           expect { described_class.new(name: '/mnt/foo bar') }.not_to raise_error Puppet::Error, %r{name.*whitespace}
         end
       end
@@ -148,13 +148,13 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
 
       describe 'for whitespace' do
         it 'does not allow spaces when kernel is not Linux' do
-          Facter.stubs(:value).with(:kernel).returns 'Darwin'
+          allow(Facter).to receive(:value).with(:kernel).and_return 'Darwin'
           expect { described_class.new(name: '/foo', ensure: :present, device: '/dev/my dev/foo') }.to raise_error Puppet::Error, %r{device.*whitespace}
           expect { described_class.new(name: '/foo', ensure: :present, device: "/dev/my\tdev/foo") }.to raise_error Puppet::Error, %r{device.*whitespace}
         end
 
         it 'does allow spaces when kernel is Linux' do
-          Facter.stubs(:value).with(:kernel).returns 'Linux'
+          allow(Facter).to receive(:value).with(:kernel).and_return 'Linux'
           expect { described_class.new(name: '/foo', ensure: :present, device: '/dev/my dev/foo') }.not_to raise_error Puppet::Error, %r{device.*whitespace}
           expect { described_class.new(name: '/foo', ensure: :present, device: "/dev/my\tdev/foo") }.not_to raise_error Puppet::Error, %r{device.*whitespace}
         end
@@ -168,7 +168,7 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
       before :each do
         # blockdevice is only used on Solaris
         [:osfamily, :operatingsystem, :kernel].each do |fact|
-          Facter.stubs(:value).with(fact).returns 'Solaris'
+          allow(Facter).to receive(:value).with(fact).and_return 'Solaris'
         end
       end
 
@@ -253,21 +253,21 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
 
       it 'supports - on Solaris' do
         [:osfamily, :operatingsystem, :kernel].each do |fact|
-          Facter.stubs(:value).with(fact).returns 'Solaris'
+          allow(Facter).to receive(:value).with(fact).and_return 'Solaris'
         end
         expect { described_class.new(name: '/foo', ensure: :present, pass: '-') }.not_to raise_error
       end
 
       it 'defaults to 0 on non Solaris' do
         [:osfamily, :operatingsystem, :kernel].each do |fact|
-          Facter.stubs(:value).with(fact).returns 'HP-UX'
+          allow(Facter).to receive(:value).with(fact).and_return 'HP-UX'
         end
         expect(described_class.new(name: '/foo', ensure: :present)[:pass]).to eq(0)
       end
 
       it 'defaults to - on Solaris' do
         [:osfamily, :operatingsystem, :kernel].each do |fact|
-          Facter.stubs(:value).with(fact).returns 'Solaris'
+          allow(Facter).to receive(:value).with(fact).and_return 'Solaris'
         end
         expect(described_class.new(name: '/foo', ensure: :present)[:pass]).to eq('-')
       end
@@ -282,7 +282,7 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
         expect { described_class.new(name: '/foo', ensure: :present, dump: '1') }.not_to raise_error
       end
 
-      # Unfortunately the operatingsystem is evaluatet at load time so I am unable to stub operatingsystem
+      # Unfortunately the operatingsystem is evaluatet at load time so I am unable to double operatingsystem
       it 'supports 2 as a value for dump on FreeBSD', if: Facter.value(:operatingsystem) == 'FreeBSD' do
         expect { described_class.new(name: '/foo', ensure: :present, dump: '2') }.not_to raise_error
       end
@@ -330,11 +330,11 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
   describe 'when changing the host' do
     def test_ensure_change(options)
       provider.set(ensure: options[:from])
-      provider.expects(:create).times(options[:create] || 0)
-      provider.expects(:destroy).times(options[:destroy] || 0)
-      provider.expects(:mount).never
-      provider.expects(:unmount).times(options[:unmount] || 0)
-      ensureprop.stubs(:syncothers)
+      expect(provider).to receive(:create).exactly(options[:create] || 0).times
+      expect(provider).to receive(:destroy).exactly(options[:destroy] || 0).times
+      expect(provider).not_to receive(:mount)
+      expect(provider).to receive(:unmount).exactly(options[:unmount] || 0).times
+      allow(ensureprop).to receive(:syncothers)
       ensureprop.should = options[:to]
       ensureprop.sync
       expect(!!provider.property_hash[:needs_mount]).to eq(!!options[:mount])
@@ -469,35 +469,35 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
     pending '2.6.x specifies slightly different behavior and the desired behavior needs to be clarified and revisited.  See ticket #4904' do
       it 'remounts if it is supposed to be mounted' do
         resource[:ensure] = 'mounted'
-        provider.expects(:remount)
+        expect(provider).to receive(:remount)
 
         resource.refresh
       end
 
       it 'does not remount if it is supposed to be present' do
         resource[:ensure] = 'present'
-        provider.expects(:remount).never
+        expect(provider).not_to receive(:remount)
 
         resource.refresh
       end
 
       it 'does not remount if it is supposed to be absent' do
         resource[:ensure] = 'absent'
-        provider.expects(:remount).never
+        expect(provider).not_to receive(:remount)
 
         resource.refresh
       end
 
       it 'does not remount if it is supposed to be defined' do
         resource[:ensure] = 'defined'
-        provider.expects(:remount).never
+        expect(provider).not_to receive(:remount)
 
         resource.refresh
       end
 
       it 'does not remount if it is supposed to be unmounted' do
         resource[:ensure] = 'unmounted'
-        provider.expects(:remount).never
+        expect(provider).not_to receive(:remount)
 
         resource.refresh
       end
@@ -505,7 +505,7 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
       it 'does not remount swap filesystems' do
         resource[:ensure] = 'mounted'
         resource[:fstype] = 'swap'
-        provider.expects(:remount).never
+        expect(provider).not_to receive(:remount)
 
         resource.refresh
       end
@@ -537,16 +537,16 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
 
     def run_in_catalog(*resources)
       # rubocop:disable RSpec/AnyInstance
-      Puppet::Transaction::Persistence.any_instance.stubs(:save) if Puppet.version.to_f < 5.0
+      allow_any_instance_of(Puppet::Transaction::Persistence).to receive(:save) if Puppet.version.to_f < 5.0
       # rubocop:enable RSpec/AnyInstance
-      Puppet::Util::Storage.stubs(:store)
+      allow(Puppet::Util::Storage).to receive(:store)
       catalog = Puppet::Resource::Catalog.new
       catalog.add_resource(*resources)
       catalog.apply
     end
 
     it 'uses the provider to change the dump value' do
-      provider.expects(:dump=).with(1)
+      expect(provider).to receive(:dump=).with(1)
 
       resource[:dump] = 1
 
@@ -554,12 +554,10 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
     end
 
     it 'umounts before flushing changes to disk' do
-      syncorder = sequence('syncorder')
-
-      provider.expects(:unmount).in_sequence(syncorder)
-      provider.expects(:options=).in_sequence(syncorder).with 'hard'
-      resource.expects(:flush).in_sequence(syncorder) # Call inside syncothers
-      resource.expects(:flush).in_sequence(syncorder) # I guess transaction or anything calls flush again
+      expect(provider).to receive(:unmount).ordered
+      expect(provider).to receive(:options=).with('hard').ordered
+      expect(resource).to receive(:flush).ordered # Call inside syncothers
+      expect(resource).to receive(:flush).ordered # I guess transaction or anything calls flush again
 
       resource[:ensure] = :unmounted
       resource[:options] = 'hard'
