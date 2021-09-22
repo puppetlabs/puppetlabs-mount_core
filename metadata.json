@@ -40,6 +40,12 @@
     },
     {
       "operatingsystem": "Solaris"
+    },
+    {
+      "operatingsystem": "Rocky"
+    },
+    {
+      "operatingsystem": "AlmaLinux"
     }
   ],
   "requirements": [
