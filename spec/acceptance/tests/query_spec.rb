@@ -13,7 +13,7 @@ RSpec.context 'when managing mounts' do
 
         step 'verify mount with puppet'
         on(agent, puppet_resource('mount', "/#{name}")) do |result|
-          fail_test "didn't find the mount #{name}" unless result.stdout =~ %r{'/#{name}':\s+ensure\s+=>\s+'unmounted'}
+          fail_test "didn't find the mount #{name}" unless %r{'/#{name}':\s+ensure\s+=>\s+'unmounted'}.match?(result.stdout)
         end
       end
 
@@ -23,7 +23,7 @@ RSpec.context 'when managing mounts' do
 
         step 'verify mount with puppet'
         on(agent, puppet_resource('mount', "'/#{name_w_whitespace}'")) do |result|
-          fail_test "didn't find the mount #{name_w_whitespace}" unless result.stdout =~ %r{'/#{name_w_whitespace}':\s+ensure\s+=>\s+'unmounted'}
+          fail_test "didn't find the mount #{name_w_whitespace}" unless %r{'/#{name_w_whitespace}':\s+ensure\s+=>\s+'unmounted'}.match?(result.stdout)
         end
       end
 
@@ -38,7 +38,7 @@ RSpec.context 'when managing mounts' do
 
         step 'verify mount with puppet'
         on(agent, puppet_resource('mount', "/#{munged_name}")) do |result|
-          fail_test "didn't find the mount #{name_w_slash}" unless result.stdout =~ %r{'/#{munged_name}':\s+ensure\s+=>\s+'unmounted'}
+          fail_test "didn't find the mount #{name_w_slash}" unless %r{'/#{munged_name}':\s+ensure\s+=>\s+'unmounted'}.match?(result.stdout)
         end
       end
     end

@@ -41,7 +41,7 @@ module MountUtils
 
     case host['platform']
     when %r{aix}
-      # Note: /dev/hd8 is the default jfs logging device on AIX.
+      # NOTE: /dev/hd8 is the default jfs logging device on AIX.
       on(host, "echo '/#{mount_name}:\n  dev = /dev/#{mount_name}\n  vfs = #{fs_type}\n  log = /dev/hd8' >> #{fs_file}")
     when %r{el-|centos|fedora|sles|debian|ubuntu|cumulus}
       # Correctly munge whitespaces in mountpoints

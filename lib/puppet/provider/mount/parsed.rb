@@ -59,7 +59,7 @@ Puppet::Type.type(:mount).provide(
       filesystem_index = 0
       ret = []
       lines.each_with_index do |line, i|
-        if line =~ %r{^\S+:}
+        if %r{^\S+:}.match?(line)
           # Begin new filesystem stanza and save the index
           ret[filesystem_index] = filesystem_stanza.join("\n") if filesystem_stanza
           filesystem_stanza = Array(line)
@@ -67,7 +67,7 @@ Puppet::Type.type(:mount).provide(
           # Eat the preceding blank line
           ret[i - 1] = nil if i > 0 && ret[i - 1] && ret[i - 1].match(%r{^\s*$})
           nil
-        elsif line =~ %r{^(\s*\*.*|\s*)$}
+        elsif %r{^(\s*\*.*|\s*)$}.match?(line)
           # Just a comment or blank line; add in place
           ret[i] = line
         else
@@ -89,7 +89,6 @@ Puppet::Type.type(:mount).provide(
                 fields: @fields,
                 separator: %r{\n},
                 block_eval: :instance do
-
       def post_parse(result)
         property_map = {
           dev: :device,
@@ -108,7 +107,7 @@ Puppet::Type.type(:mount).provide(
         special_options = []
         result[:name] = memo[:name].sub(%r{:\s*$}, '').strip
         memo.each do |_, k_v|
-          next unless k_v && k_v.is_a?(String) && k_v.match('=')
+          next unless k_v&.is_a?(String) && k_v.match('=')
           attr_name, attr_value = k_v.split('=', 2).map(&:strip)
           attr_map_name = property_map[attr_name.to_sym]
           if attr_map_name
@@ -140,10 +139,10 @@ Puppet::Type.type(:mount).provide(
       def to_line(result)
         output = []
         output << "#{result[:name]}:"
-        if result[:device] && result[:device].match(%r{^/})
+        if result[:device]&.match(%r{^/})
           output << "\tdev\t\t= #{result[:device]}"
         elsif result[:device] && result[:device] != :absent
-          if result[:device] !~ %r{^.+:/}
+          unless %r{^.+:/}.match?(result[:device])
             # Just skip this entry; it was malformed to begin with
             Puppet.err _("Mount[%{name}]: Field 'device' must be in the format of <absolute path> or <host>:<absolute path>") % { name: result[:name] }
             return result[:line]
@@ -178,9 +177,9 @@ Puppet::Type.type(:mount).provide(
           output << "\toptions\t\t= #{options.join(',')}" unless options.empty?
         end
         if result[:line] && result[:line].split("\n").sort == output.sort
-          return "\n#{result[:line]}"
+          "\n#{result[:line]}"
         else
-          return "\n#{output.join("\n")}"
+          "\n#{output.join("\n")}"
         end
       end
     end
@@ -229,7 +228,7 @@ Puppet::Type.type(:mount).provide(
     target_records.map do |record|
       # Eat the trailing slash(es) of mountpoints in fstab
       # This mimics the behavior of munging the resource title
-      record[:name].gsub!(%r{^(.+?)/*$}, '\1') unless record[:name].nil?
+      record[:name]&.gsub!(%r{^(.+?)/*$}, '\1')
       record[:ensure] = :unmounted if record[:record_type] == :parsed
       record
     end
