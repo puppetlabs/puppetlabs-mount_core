@@ -237,7 +237,7 @@ FSTAB
           skip "is #{platform}.mount missing at this point?"
         end
 
-        # Note: we have to stub default_target before creating resources
+        # NOTE: we have to stub default_target before creating resources
         # because it is used by Puppet::Type::Mount.new to populate the
         # :target property.
         allow(described_class).to receive(:default_target).and_return fstab
@@ -351,7 +351,7 @@ FSTAB
           skip "is #{platform}.mount missing at this point?"
         end
 
-        # Note: we have to stub default_target before creating resources
+        # NOTE: we have to stub default_target before creating resources
         # because it is used by Puppet::Type::Mount.new to populate the
         # :target property.
         allow(described_class).to receive(:default_target).and_return fstab

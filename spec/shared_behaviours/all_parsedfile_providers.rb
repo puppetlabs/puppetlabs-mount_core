@@ -4,7 +4,7 @@ shared_examples_for 'all parsedfile providers' do |provider, *files|
   end
 
   files.flatten.each do |file|
-    it "should rewrite #{file} reasonably unchanged" do
+    it "rewrites #{file} reasonably unchanged" do
       allow(provider).to receive(:default_target).and_return(file)
       provider.prefetch
 

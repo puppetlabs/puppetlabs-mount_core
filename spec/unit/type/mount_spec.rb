@@ -54,13 +54,13 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
 
   describe 'when validating attributes' do
     [:name, :remounts, :provider].each do |param|
-      it "should have a #{param} parameter" do
+      it "has a #{param} parameter" do
         expect(described_class.attrtype(param)).to eq(:param)
       end
     end
 
     [:ensure, :device, :blockdevice, :fstype, :options, :pass, :dump, :atboot, :target].each do |param|
-      it "should have a #{param} property" do
+      it "has a #{param} property" do
         expect(described_class.attrtype(param)).to eq(:property)
       end
     end

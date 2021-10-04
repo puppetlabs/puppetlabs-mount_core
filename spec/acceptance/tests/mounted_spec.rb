@@ -15,7 +15,7 @@ RSpec.context 'when managing mounts' do
         MountUtils.create_filesystem(agent, name)
 
         step 'create a mount with puppet (mounted)'
-        args = if agent['platform'] =~ %r{aix}
+        args = if %r{aix}.match?(agent['platform'])
                  ['ensure=mounted',
                   "fstype=#{fs_type}",
                   "options='log=/dev/hd8'",

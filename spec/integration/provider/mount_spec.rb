@@ -110,7 +110,7 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
             describe "When setting ensure => #{ensure_setting}" do
               ['local', 'journaled', '', nil].each do |options_setting|
                 describe "When setting options => '#{options_setting}'" do
-                  it "should leave the system in the #{expected_final_state ? 'mounted' : 'unmounted'} state, #{expected_fstab_data ? 'with' : 'without'} data in /etc/fstab" do
+                  it "leaves the system in the #{expected_final_state ? 'mounted' : 'unmounted'} state, #{expected_fstab_data ? 'with' : 'without'} data in /etc/fstab" do
                     if family == 'Solaris'
                       skip('Solaris: The double :operatingsystem value does not get changed in lib/puppet/provider/mount/parsed.rb')
                     elsif options_setting && options_setting.empty?
