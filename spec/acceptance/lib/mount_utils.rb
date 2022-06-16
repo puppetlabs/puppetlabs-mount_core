@@ -65,7 +65,7 @@ module MountUtils
       on(host, "mklv -y #{mount_name} #{volume_group} 1M")
       on(host, "mkfs -V #{fs_type} -l #{mount_name} /dev/#{mount_name}")
     when %r{el-|centos|fedora|sles|debian|ubuntu|cumulus}
-      on(host, "dd if=/dev/zero of='/tmp/#{mount_name}' count=10240", acceptable_exit_codes: [0, 1])
+      on(host, "dd if=/dev/zero of='/tmp/#{mount_name}' count=16384", acceptable_exit_codes: [0, 1])
       on(host, "yes | mkfs -t #{fs_type} -q '/tmp/#{mount_name}'", acceptable_exit_codes: (0..254))
     else
       # TODO: Add Solaris and OSX support, as per PUP-5201 and PUP-4823
