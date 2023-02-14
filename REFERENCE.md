@@ -96,24 +96,24 @@ those providers that write to disk.
 
 The following parameters are available in the `mount` type.
 
-* [`name`](#name)
-* [`provider`](#provider)
-* [`remounts`](#remounts)
+* [`name`](#-mount--name)
+* [`provider`](#-mount--provider)
+* [`remounts`](#-mount--remounts)
 
-##### <a name="name"></a>`name`
+##### <a name="-mount--name"></a>`name`
 
 namevar
 
 The mount path for the mount. On Linux systems it can contain whitespace.
 
-##### <a name="provider"></a>`provider`
+##### <a name="-mount--provider"></a>`provider`
 
 The specific backend to use for this `mount` resource. You will seldom need to specify this --- Puppet will usually
 discover the appropriate provider for your platform.
 
-##### <a name="remounts"></a>`remounts`
+##### <a name="-mount--remounts"></a>`remounts`
 
-Valid values: ``true``, ``false``
+Valid values: `true`, `false`
 
 Whether the mount can be remounted  `mount -o remount`.  If
 this is false, then the filesystem will be unmounted and remounted
