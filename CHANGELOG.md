@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org).
 
+## [v1.2.0](https://github.com/puppetlabs/puppetlabs-mount_core/tree/v1.2.0) (2023-02-14)
+
+[Full Changelog](https://github.com/puppetlabs/puppetlabs-mount_core/compare/v1.1.0...v1.2.0)
+
+### Added
+
+- \(MODULES-11371\) Updates PDK template [\#44](https://github.com/puppetlabs/puppetlabs-mount_core/pull/44) ([mhashizume](https://github.com/mhashizume))
+
+### UNCATEGORIZED PRS; LABEL THEM ON GITHUB
+
+- \(MODULES-11367\) Updates Ubuntu GitHub Actions runners [\#43](https://github.com/puppetlabs/puppetlabs-mount_core/pull/43) ([mhashizume](https://github.com/mhashizume))
+- \(MODULES-11356\) Update macOS runners to use more recent macOS version [\#42](https://github.com/puppetlabs/puppetlabs-mount_core/pull/42) ([AriaXLi](https://github.com/AriaXLi))
+- \(maint\) Removes Cumulus case from acceptance tests [\#41](https://github.com/puppetlabs/puppetlabs-mount_core/pull/41) ([mhashizume](https://github.com/mhashizume))
+- \(maint\) Create a larger filesystem [\#40](https://github.com/puppetlabs/puppetlabs-mount_core/pull/40) ([joshcooper](https://github.com/joshcooper))
+- \(MODULES-11283\) update curl for installing latest nightly build [\#39](https://github.com/puppetlabs/puppetlabs-mount_core/pull/39) ([AriaXLi](https://github.com/AriaXLi))
+- \(maint\) Add redirect to nightly puppet gem download [\#38](https://github.com/puppetlabs/puppetlabs-mount_core/pull/38) ([AriaXLi](https://github.com/AriaXLi))
+- \(PA-4133\) Add phoenix to CODEOWNERS [\#37](https://github.com/puppetlabs/puppetlabs-mount_core/pull/37) ([AriaXLi](https://github.com/AriaXLi))
+- \(maint\) Github workflow now uses windows 2019 [\#36](https://github.com/puppetlabs/puppetlabs-mount_core/pull/36) ([Dorin-Pleava](https://github.com/Dorin-Pleava))
+- \(maint\) Pin the async gem [\#35](https://github.com/puppetlabs/puppetlabs-mount_core/pull/35) ([mhashizume](https://github.com/mhashizume))
+
 ## [v1.1.0](https://github.com/puppetlabs/puppetlabs-mount_core/tree/v1.1.0) (2021-10-04)
 
 [Full Changelog](https://github.com/puppetlabs/puppetlabs-mount_core/compare/1.0.4...v1.1.0)
