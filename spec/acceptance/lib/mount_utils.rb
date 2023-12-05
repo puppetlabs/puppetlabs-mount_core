@@ -8,7 +8,7 @@ module MountUtils
     case host['platform']
     when %r{aix}
       '/etc/filesystems'
-    when %r{el-|centos|fedora|sles|debian|ubuntu}
+    when %r{el-|centos|fedora|sles|debian|ubuntu|amazon}
       '/etc/fstab'
     else
       # TODO: Add Solaris and OSX support, as per PUP-5201 and PUP-4823
@@ -23,7 +23,7 @@ module MountUtils
     case host['platform']
     when %r{aix}
       'jfs2'
-    when %r{el-|centos|fedora|sles|debian|ubuntu}
+    when %r{el-|centos|fedora|sles|debian|ubuntu|amazon}
       'ext3'
     else
       # TODO: Add Solaris and OSX support, as per PUP-5201 and PUP-4823
@@ -43,7 +43,7 @@ module MountUtils
     when %r{aix}
       # NOTE: /dev/hd8 is the default jfs logging device on AIX.
       on(host, "echo '/#{mount_name}:\n  dev = /dev/#{mount_name}\n  vfs = #{fs_type}\n  log = /dev/hd8' >> #{fs_file}")
-    when %r{el-|centos|fedora|sles|debian|ubuntu}
+    when %r{el-|centos|fedora|sles|debian|ubuntu|amazon}
       # Correctly munge whitespaces in mountpoints
       munged_mount_name = mount_name.gsub(' ', '\\\040')
       on(host, "echo '/tmp/#{munged_mount_name}  /#{munged_mount_name}  #{fs_type}  loop  0  0' >> #{fs_file}")
@@ -64,7 +64,7 @@ module MountUtils
       volume_group = on(host, 'lsvg').stdout.split("\n")[0]
       on(host, "mklv -y #{mount_name} #{volume_group} 1M")
       on(host, "mkfs -V #{fs_type} -l #{mount_name} /dev/#{mount_name}")
-    when %r{el-|centos|fedora|sles|debian|ubuntu}
+    when %r{el-|centos|fedora|sles|debian|ubuntu|amazon}
       on(host, "dd if=/dev/zero of='/tmp/#{mount_name}' count=16384", acceptable_exit_codes: [0, 1])
       on(host, "yes | mkfs -t #{fs_type} -q '/tmp/#{mount_name}'", acceptable_exit_codes: (0..254))
     else
