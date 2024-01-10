@@ -292,7 +292,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
   def value(name)
     name = name.to_sym
     property = @parameters[name]
-    property ? property.value : nil
+    property&.value
   end
 
   # Ensure that mounts higher up in the filesystem are mounted first
