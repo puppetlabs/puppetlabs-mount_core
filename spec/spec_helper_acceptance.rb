@@ -31,7 +31,7 @@ shared_context 'mount context' do |agent|
     # umount disk image
     on(agent, "umount /#{name}", acceptable_exit_codes: (0..254))
     # delete disk image
-    if %r{aix}.match?(agent['platform'])
+    if agent['platform'].include?('aix')
       on(agent, "rmlv -f #{name}", acceptable_exit_codes: (0..254))
     else
       on(agent, "rm /tmp/#{name}", acceptable_exit_codes: (0..254))
