@@ -75,7 +75,7 @@ describe Puppet::Provider::Mount do
           allow(mounter).to receive(:info)
           allow(mounter).to receive(:options).and_return('ro')
           allow(resource).to receive(:[]).with(:remounts).and_return(:true)
-          expect(Facter).to receive(:value).with(:operatingsystem).and_return 'AIX'
+          expect(Facter).to receive(:value).with('os.name').and_return 'AIX'
           expect(mounter).to receive(:mountcmd).with('-o', 'ro,remount', name)
           mounter.remount
         end
@@ -93,7 +93,7 @@ describe Puppet::Provider::Mount do
       allow(mounter).to receive(:info)
       allow(mounter).to receive(:options)
       allow(resource).to receive(:[]).with(:remounts).and_return(false)
-      expect(Facter).to receive(:value).with(:operatingsystem).and_return 'OpenBSD'
+      expect(Facter).to receive(:value).with('os.name').and_return 'OpenBSD'
       expect(mounter).to receive(:mountcmd).with('-o', 'update', name)
       mounter.remount
     end
@@ -102,7 +102,7 @@ describe Puppet::Provider::Mount do
       allow(mounter).to receive(:info)
       allow(mounter).to receive(:options)
       allow(resource).to receive(:[]).with(:remounts).and_return(false)
-      expect(Facter).to receive(:value).with(:operatingsystem).and_return 'AIX'
+      expect(Facter).to receive(:value).with('os.name').and_return 'AIX'
       expect(mounter).to receive(:mount)
       expect(mounter).to receive(:unmount)
       mounter.remount

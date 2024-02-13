@@ -21,7 +21,7 @@ describe Puppet::Type.type(:mount).provider(:parsed), unless: Puppet.features.mi
 
   # LAK:FIXME I can't double Facter because this test happens at parse-time.
   it 'defaults to /etc/vfstab on Solaris' do
-    if Facter.value(:osfamily) != 'Solaris'
+    if Facter.value('os.family') != 'Solaris'
       skip('This test only works on Solaris')
     else
       expect(described_class.default_target).to eq('/etc/vfstab')
@@ -29,12 +29,12 @@ describe Puppet::Type.type(:mount).provider(:parsed), unless: Puppet.features.mi
   end
 
   it 'defaults to /etc/filesystems on AIX' do
-    pending 'This test only works on AIX' unless Facter.value(:osfamily) == 'AIX'
+    pending 'This test only works on AIX' unless Facter.value('os.family') == 'AIX'
     expect(described_class.default_target).to eq('/etc/filesystems')
   end
 
   it 'defaults to /etc/fstab on anything else' do
-    if Facter.value(:osfamily) == 'Solaris'
+    if Facter.value('os.family') == 'Solaris'
       skip('This test only does not work on Solaris')
     else
       expect(described_class.default_target).to eq('/etc/fstab')
@@ -53,7 +53,7 @@ FSTAB
     #   it_should_behave_like "all parsedfile providers",
     #     provider_class, my_fixtures('*.fstab')
 
-    describe 'on Solaris', if: Facter.value(:osfamily) == 'Solaris' do
+    describe 'on Solaris', if: Facter.value('os.family') == 'Solaris' do
       it 'extracts device from the first field' do
         expect(described_class.parse_line(vfstab_sample)[:device]).to eq('/dev/dsk/c0d0s0')
       end
@@ -83,7 +83,7 @@ FSTAB
       end
     end
 
-    describe 'on other platforms than Solaris', if: Facter.value(:osfamily) != 'Solaris' do
+    describe 'on other platforms than Solaris', if: Facter.value('os.family') != 'Solaris' do
       it 'extracts device from the first field' do
         expect(described_class.parse_line(fstab_sample)[:device]).to eq('/dev/vg00/lv01')
       end
@@ -112,7 +112,7 @@ FSTAB
 
   describe 'mountinstances' do
     it 'gets name from mountoutput found on Solaris' do
-      allow(Facter).to receive(:value).with(:osfamily).and_return 'Solaris'
+      allow(Facter).to receive(:value).with('os.family').and_return 'Solaris'
       allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('solaris.mount')))
       mounts = described_class.mountinstances
       expect(mounts.size).to eq(6)
@@ -125,7 +125,7 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on HP-UX' do
-      allow(Facter).to receive(:value).with(:osfamily).and_return 'HP-UX'
+      allow(Facter).to receive(:value).with('os.family').and_return 'HP-UX'
       allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('hpux.mount')))
       mounts = described_class.mountinstances
       expect(mounts.size).to eq(17)
@@ -149,7 +149,7 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on Darwin' do
-      allow(Facter).to receive(:value).with(:osfamily).and_return 'Darwin'
+      allow(Facter).to receive(:value).with('os.family').and_return 'Darwin'
       allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('darwin.mount')))
       mounts = described_class.mountinstances
       expect(mounts.size).to eq(6)
@@ -162,7 +162,7 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on Linux' do
-      allow(Facter).to receive(:value).with(:osfamily).and_return 'Gentoo'
+      allow(Facter).to receive(:value).with('os.family').and_return 'Gentoo'
       allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('linux.mount')))
       mounts = described_class.mountinstances
       expect(mounts[0]).to eq(name: '/', mounted: :yes)
@@ -175,7 +175,7 @@ FSTAB
     end
 
     it 'gets name from mountoutput found on AIX' do
-      allow(Facter).to receive(:value).with(:osfamily).and_return 'AIX'
+      allow(Facter).to receive(:value).with('os.family').and_return 'AIX'
       allow(described_class).to receive(:mountcmd).and_return(File.read(my_fixture('aix.mount')))
       mounts = described_class.mountinstances
       expect(mounts[0]).to eq(name: '/', mounted: :yes)
@@ -196,8 +196,8 @@ FSTAB
   end
 
   it "supports AIX's paragraph based /etc/filesystems" do
-    pending 'This test only works on AIX' unless Facter.value(:osfamily) == 'AIX'
-    allow(Facter).to receive(:value).with(:osfamily).and_return 'AIX'
+    pending 'This test only works on AIX' unless Facter.value('os.family') == 'AIX'
+    allow(Facter).to receive(:value).with('os.family').and_return 'AIX'
     allow(described_class).to receive(:default_target).and_return my_fixture('aix.filesystems')
     allow(described_class).to receive(:mountcmd).and_return File.read(my_fixture('aix.mount'))
     instances = described_class.instances
@@ -220,8 +220,8 @@ FSTAB
       end
 
       before :each do
-        allow(Facter).to receive(:value).with(:osfamily).and_return platform
-        if Facter[:osfamily] == 'Solaris'
+        allow(Facter).to receive(:value).with('os.family').and_return platform
+        if Facter.value('os.family') == 'Solaris'
           platform == 'solaris' ||
             skip("We need to double the operatingsystem fact at load time, but can't")
         else
@@ -244,7 +244,7 @@ FSTAB
       end
 
       # Following mountpoint are present in all fstabs/mountoutputs
-      describe 'on other platforms than Solaris', if: Facter.value(:osfamily) != 'Solaris' do
+      describe 'on other platforms than Solaris', if: Facter.value('os.family') != 'Solaris' do
         it 'includes unmounted resources' do
           expect(instances).to include(name: '/', ensure: :mounted)
         end
@@ -275,8 +275,8 @@ FSTAB
 
       before :each do
         allow(Facter).to receive(:value).with(:kernel).and_return 'Linux'
-        allow(Facter).to receive(:value).with(:operatingsystem).and_return 'RedHat'
-        allow(Facter).to receive(:value).with(:osfamily).and_return 'RedHat'
+        allow(Facter).to receive(:value).with('os.name').and_return 'RedHat'
+        allow(Facter).to receive(:value).with('os.family').and_return 'RedHat'
         begin
           mount = my_fixture('linux.mount')
           allow(described_class).to receive(:mountcmd).and_return File.read(mount)
@@ -331,11 +331,11 @@ FSTAB
       end
 
       before :each do
-        [:osfamily, :operatingsystem, :kernel].each do |fact|
+        ['os.family', 'os.name', :kernel].each do |fact|
           allow(Facter).to receive(:value).with(fact).and_return platform
         end
 
-        if Facter[:osfamily] == 'Solaris'
+        if Facter.value('os.family') == 'Solaris'
           platform == 'solaris' ||
             skip("We need to double the operatingsystem fact at load time, but can't")
         else
@@ -357,7 +357,7 @@ FSTAB
         allow(described_class).to receive(:default_target).and_return fstab
       end
 
-      describe 'on other platforms than Solaris', if: Facter.value(:osfamily) != 'Solaris' do
+      describe 'on other platforms than Solaris', if: Facter.value('os.family') != 'Solaris' do
         it 'sets :ensure to :unmounted if found in fstab but not mounted' do
           described_class.prefetch(resource_hash)
           expect(res_unmounted.provider.get(:ensure)).to eq(:unmounted)

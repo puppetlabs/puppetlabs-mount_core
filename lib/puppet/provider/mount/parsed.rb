@@ -1,7 +1,7 @@
 require 'puppet/provider/parsedfile'
 require_relative '../mount'
 
-fstab = case Facter.value(:osfamily)
+fstab = case Facter.value('os.family')
         when 'Solaris' then '/etc/vfstab'
         when 'AIX' then '/etc/filesystems'
         else
@@ -20,14 +20,14 @@ Puppet::Type.type(:mount).provide(
 
   commands mountcmd: 'mount', umount: 'umount'
 
-  @fields = case Facter.value(:osfamily)
+  @fields = case Facter.value('os.family')
             when 'Solaris'
               [:device, :blockdevice, :name, :fstype, :pass, :atboot, :options]
             else
               [:device, :name, :fstype, :options, :dump, :pass]
             end
 
-  if Facter.value(:osfamily) == 'AIX'
+  if Facter.value('os.family') == 'AIX'
     # * is the comment character on AIX /etc/filesystems
     text_line :comment, match: %r{^\s*\*}
   else
@@ -43,7 +43,7 @@ Puppet::Type.type(:mount).provide(
   field_pattern = '(\s*(?>\S+))'
   text_line :incomplete, match: %r{^(?!#{field_pattern}{#{mandatory_fields.length}})}
 
-  case Facter.value(:osfamily)
+  case Facter.value('os.family')
   when 'AIX'
     # The only field that is actually ordered is :name. See `man filesystems` on AIX
     @fields = [:name, :account, :boot, :check, :dev, :free, :mount, :nodename,
@@ -272,7 +272,7 @@ Puppet::Type.type(:mount).provide(
   end
 
   def self.mountinstances
-    regex = case Facter.value(:osfamily)
+    regex = case Facter.value('os.family')
             when 'Darwin'
               %r{ on (?:/private/var/automount)?(\S*)}
             when 'Solaris', 'HP-UX'

@@ -167,7 +167,7 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
     describe 'for blockdevice' do
       before :each do
         # blockdevice is only used on Solaris
-        [:osfamily, :operatingsystem, :kernel].each do |fact|
+        ['os.family', 'os.name', :kernel].each do |fact|
           allow(Facter).to receive(:value).with(fact).and_return 'Solaris'
         end
       end
@@ -252,21 +252,21 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
       end
 
       it 'supports - on Solaris' do
-        [:osfamily, :operatingsystem, :kernel].each do |fact|
+        ['os.family', 'os.name', :kernel].each do |fact|
           allow(Facter).to receive(:value).with(fact).and_return 'Solaris'
         end
         expect { described_class.new(name: '/foo', ensure: :present, pass: '-') }.not_to raise_error
       end
 
       it 'defaults to 0 on non Solaris' do
-        [:osfamily, :operatingsystem, :kernel].each do |fact|
+        ['os.family', 'os.name', :kernel].each do |fact|
           allow(Facter).to receive(:value).with(fact).and_return 'HP-UX'
         end
         expect(described_class.new(name: '/foo', ensure: :present)[:pass]).to eq(0)
       end
 
       it 'defaults to - on Solaris' do
-        [:osfamily, :operatingsystem, :kernel].each do |fact|
+        ['os.family', 'os.name', :kernel].each do |fact|
           allow(Facter).to receive(:value).with(fact).and_return 'Solaris'
         end
         expect(described_class.new(name: '/foo', ensure: :present)[:pass]).to eq('-')
@@ -283,11 +283,11 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
       end
 
       # Unfortunately the operatingsystem is evaluatet at load time so I am unable to double operatingsystem
-      it 'supports 2 as a value for dump on FreeBSD', if: Facter.value(:operatingsystem) == 'FreeBSD' do
+      it 'supports 2 as a value for dump on FreeBSD', if: Facter.value('os.name') == 'FreeBSD' do
         expect { described_class.new(name: '/foo', ensure: :present, dump: '2') }.not_to raise_error
       end
 
-      it 'does not support 2 as a value for dump when not on FreeBSD', if: Facter.value(:operatingsystem) != 'FreeBSD' do
+      it 'does not support 2 as a value for dump when not on FreeBSD', if: Facter.value('os.name') != 'FreeBSD' do
         expect { described_class.new(name: '/foo', ensure: :present, dump: '2') }.to raise_error Puppet::Error, %r{Invalid value}
       end
 
