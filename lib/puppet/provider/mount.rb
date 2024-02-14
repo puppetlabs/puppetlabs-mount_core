@@ -26,7 +26,7 @@ module Puppet::Provider::Mount
   def remount
     # TRANSLATORS refers to remounting a file system
     info _('Remounting')
-    os = Facter.value(:operatingsystem)
+    os = Facter.value('os.name')
     supports_remounts = (resource[:remounts] == :true)
     if supports_remounts && os == 'AIX'
       remount_with_option('remount')

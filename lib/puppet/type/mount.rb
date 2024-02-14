@@ -145,7 +145,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
 
     # Default to the device but with "dsk" replaced with "rdsk".
     defaultto do
-      if Facter.value(:osfamily) == 'Solaris'
+      if Facter.value('os.family') == 'Solaris'
         if (device = resource[:device]) && device.include?('/dsk/')
           device.sub(%r{/dsk/}, '/rdsk/')
         elsif (fstype = resource[:fstype]) && fstype == 'nfs'
@@ -193,7 +193,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
 
     defaultto do
       if @resource.managed?
-        if Facter.value(:osfamily) == 'Solaris'
+        if Facter.value('os.family') == 'Solaris'
           '-'
         else
           0
@@ -220,7 +220,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
     desc "Whether to dump the mount.  Not all platform support this.
         Valid values are `1` or `0` (or `2` on FreeBSD). Default is `0`."
 
-    if Facter.value(:operatingsystem) == 'FreeBSD'
+    if Facter.value('os.name') == 'FreeBSD'
       newvalue(%r{(0|1|2)})
     else
       newvalue(%r{(0|1)})
@@ -267,7 +267,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
 
     newvalues(:true, :false)
     defaultto do
-      case Facter.value(:operatingsystem)
+      case Facter.value('os.name')
       when 'FreeBSD', 'Darwin', 'DragonFly', 'OpenBSD'
         false
       when 'AIX'

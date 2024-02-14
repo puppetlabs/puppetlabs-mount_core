@@ -5,8 +5,6 @@ require 'puppet/file_bucket/dipper'
 describe 'mount provider (integration)', unless: Puppet.features.microsoft_windows? do
   include PuppetSpec::Files
 
-  family = Facter.value(:osfamily)
-
   def create_fake_fstab(initially_contains_entry)
     File.open(@fake_fstab, 'w') do |f|
       if initially_contains_entry
@@ -24,8 +22,8 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
     allow(Facter).to receive(:value).with(:hostname).and_return('some_host')
     allow(Facter).to receive(:value).with(:domain).and_return('some_domain')
     allow(Facter).to receive(:value).with(:kernel).and_return('Linux')
-    allow(Facter).to receive(:value).with(:operatingsystem).and_return('RedHat')
-    allow(Facter).to receive(:value).with(:osfamily).and_return('RedHat')
+    allow(Facter).to receive(:value).with('os.name').and_return('RedHat')
+    allow(Facter).to receive(:value).with('os.family').and_return('RedHat')
     allow(Facter).to receive(:value).with(:fips_enabled).and_return(false)
     Puppet::Util::ExecutionStub.set do |command, _options|
       case command[0]
@@ -111,9 +109,7 @@ describe 'mount provider (integration)', unless: Puppet.features.microsoft_windo
               ['local', 'journaled', '', nil].each do |options_setting|
                 describe "When setting options => '#{options_setting}'" do
                   it "leaves the system in the #{expected_final_state ? 'mounted' : 'unmounted'} state, #{expected_fstab_data ? 'with' : 'without'} data in /etc/fstab" do
-                    if family == 'Solaris'
-                      skip('Solaris: The double :operatingsystem value does not get changed in lib/puppet/provider/mount/parsed.rb')
-                    elsif options_setting && options_setting.empty?
+                    if options_setting && options_setting.empty?
                       expect { run_in_catalog(ensure: ensure_setting, options: options_setting) }.to raise_error Puppet::ResourceError
                     else
                       if options_setting
