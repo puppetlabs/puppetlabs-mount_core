@@ -32,7 +32,7 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
   end
 
   let :resource do
-    described_class.new(name: 'yay', audit: :ensure, provider: provider)
+    described_class.new(name: 'yay', audit: :ensure, provider:)
   end
 
   let :ensureprop do
@@ -528,7 +528,7 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
     end
 
     let :resource do
-      described_class.new(initial_values.merge(provider: provider))
+      described_class.new(initial_values.merge(provider:))
     end
 
     let :provider do
@@ -577,8 +577,8 @@ describe Puppet::Type.type(:mount), unless: Puppet.features.microsoft_windows? d
     def create_file_resource(path)
       file_class = Puppet::Type.type(:file)
       file_class.new(
-        path: path,
-        provider: file_class.new(path: path).provider,
+        path:,
+        provider: file_class.new(path:).provider,
       )
     end
 
