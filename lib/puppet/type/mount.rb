@@ -132,7 +132,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
 
     validate do |value|
       unless Facter.value(:kernel) == 'Linux'
-        raise Puppet::Error, _('device must not contain whitespace: %{value}') % { value: value } if %r{\s}.match?(value)
+        raise Puppet::Error, _('device must not contain whitespace: %{value}') % ({ value: }) if %r{\s}.match?(value)
       end
     end
   end
@@ -159,7 +159,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
     end
 
     validate do |value|
-      raise Puppet::Error, _('blockdevice must not contain whitespace: %{value}') % { value: value } if %r{\s}.match?(value)
+      raise Puppet::Error, _('blockdevice must not contain whitespace: %{value}') % ({ value: }) if %r{\s}.match?(value)
     end
   end
 
@@ -168,7 +168,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
         operating system.  This is a required option."
 
     validate do |value|
-      raise Puppet::Error, _('fstype must not contain whitespace: %{value}') % { value: value } if %r{\s}.match?(value)
+      raise Puppet::Error, _('fstype must not contain whitespace: %{value}') % ({ value: }) if %r{\s}.match?(value)
       raise Puppet::Error, _('fstype must not be an empty string') if value.empty?
     end
   end
@@ -183,7 +183,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
         the list."
 
     validate do |value|
-      raise Puppet::Error, _('options must not contain whitespace: %{value}') % { value: value } if %r{\s}.match?(value)
+      raise Puppet::Error, _('options must not contain whitespace: %{value}') % ({ value: }) if %r{\s}.match?(value)
       raise Puppet::Error, _('options must not be an empty string') if value.empty?
     end
   end
@@ -251,7 +251,7 @@ Puppet::Type.newtype(:mount, self_refresh: true) do
 
     validate do |value|
       unless Facter.value(:kernel) == 'Linux'
-        raise Puppet::Error, _('name must not contain whitespace: %{value}') % { value: value } if %r{\s}.match?(value)
+        raise Puppet::Error, _('name must not contain whitespace: %{value}') % ({ value: }) if %r{\s}.match?(value)
       end
     end
 
